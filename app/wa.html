@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="wa-tik" content="{{TIK}}">
+<meta name="referrer" content="no-referrer">
+<title>WhatsApp · GodChat</title>
+<style>
+:root {
+  --bg: #f6f5f1; --vlak: #ffffff; --lijn: #e4e1d8; --inkt: #22211e; --zacht: #6f6b62; --flauw: #a29e94;
+  --accent: #3f6b52; --accent-zacht: #e3ece5; --werkt: #3d6fb4; --wacht: #b7791f; --wacht-zacht: #fbf1df;
+  --fout: #b4443d; --code: #f1efe9;
+  --vvh: 100dvh;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171716; --vlak: #201f1d; --lijn: #34322e; --inkt: #ecebe6; --zacht: #a7a399; --flauw: #77736b;
+    --accent: #8cc0a0; --accent-zacht: #23302a; --werkt: #7ea6e0; --wacht: #e0a94f; --wacht-zacht: #2e2618;
+    --fout: #e07a73; --code: #2a2926;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow-x: hidden; }
+body { background: var(--bg); color: var(--inkt); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+button, textarea, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--lijn); background: var(--vlak); border-radius: 8px; padding: 6px 12px; min-height: 36px; }
+button.hoofd { background: var(--accent); border-color: var(--accent); color: var(--vlak); }
+button.wachtkleur { background: var(--wacht); border-color: var(--wacht); color: var(--vlak); }
+button:disabled { opacity: .5; cursor: default; }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+
+/* kop en tabs, zoals de app */
+.appkop { display: flex; align-items: center; gap: 10px; padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top)); border-bottom: 1px solid var(--lijn); background: var(--vlak); }
+.appkop .merk { font-size: 16px; font-weight: 700; color: var(--inkt); text-decoration: none; letter-spacing: .2px; margin-right: auto; }
+.nep { background: var(--wacht-zacht); color: var(--wacht); font-size: 12px; border-radius: 6px; padding: 2px 8px; }
+.ikoon { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: none; background: transparent; }
+.ikoon svg { width: 22px; height: 22px; }
+nav.tabs { display: flex; gap: 4px; padding: 8px 16px 0; background: var(--bg); }
+nav.tabs a { flex: 1; text-align: center; font-size: 14px; padding: 9px 4px; white-space: nowrap; border-radius: 8px 8px 0 0; color: var(--zacht); text-decoration: none; }
+nav.tabs a.aan { background: var(--vlak); color: var(--inkt); font-weight: 600; }
+.bridgebalk { background: var(--fout); color: #fff; font-size: 13px; padding: 6px 16px; text-align: center; }
+
+/* indeling: telefoon eerst */
+#app { min-height: 100%; }
+#lijst { background: var(--vlak); min-height: calc(100dvh - 100px); }
+#gesprek { display: none; }
+body.open:not(.schuift-in):not(.schuift-uit) #lijstscherm { display: none; }
+body.open #gesprek { display: flex; position: fixed; left: 0; right: 0; top: 0; height: var(--vvh); z-index: 10; }
+
+/* chatlijst */
+.zoek { padding: 10px 12px 6px; display: flex; flex-direction: column; gap: 8px; }
+.zoek input { width: 100%; font-size: 16px; border: 1px solid var(--lijn); border-radius: 10px; padding: 9px 12px; background: var(--bg); }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button { border-radius: 999px; font-size: 13.5px; padding: 6px 12px; min-height: 34px; }
+.filters button.aan { background: var(--accent-zacht); border-color: var(--accent); color: var(--inkt); font-weight: 600; }
+.filters .tel { color: var(--wacht); font-weight: 700; margin-left: 4px; }
+#chats { list-style: none; margin: 0; padding: 0 0 calc(24px + env(safe-area-inset-bottom)); }
+#chats li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; padding: 10px 14px; cursor: pointer; min-height: 68px; border-bottom: 1px solid var(--bg); -webkit-tap-highlight-color: transparent; }
+#chats li:hover { background: var(--bg); }
+#chats li.gekozen { background: var(--accent-zacht); }
+.rond { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 600; font-size: 17px; flex: none; user-select: none; }
+.rond svg { width: 24px; height: 24px; }
+.rond.klein { width: 36px; height: 36px; font-size: 14px; }
+.rond.klein svg { width: 18px; height: 18px; }
+.midden { min-width: 0; }
+.rij1 { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.rij1 .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.label { font-size: 11px; font-weight: 600; border-radius: 5px; padding: 1px 6px; white-space: nowrap; flex: none; }
+.rij2 { font-size: 13.5px; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rij2 .wie { color: var(--inkt); }
+.rechtskol { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 12px; color: var(--flauw); }
+.merk-k { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+.merk-k.klad { background: var(--accent); color: var(--vlak); }
+.merk-k.vraag { background: var(--wacht); color: var(--vlak); }
+.merk-k.lus { border: 1px solid var(--lijn); color: var(--zacht); font-weight: 600; }
+.merkjes { display: flex; gap: 4px; }
+/* wie wacht op jou */
+#chats li.metvink { grid-template-columns: 48px minmax(0, 1fr) auto 44px; column-gap: 10px; padding-right: 6px; }
+.wachttijd { color: var(--wacht); font-weight: 600; white-space: nowrap; }
+.bol { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--wacht); margin-right: 5px; vertical-align: 1px; }
+.vink { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: var(--zacht); flex: none; }
+.vink svg { width: 20px; height: 20px; }
+.vink:hover { color: var(--accent); border-color: var(--accent); }
+#chats li.deelkop { display: block; min-height: 0; padding: 14px 14px 4px; cursor: default; font-size: 12px; font-weight: 700; color: var(--zacht); text-transform: uppercase; letter-spacing: .04em; border-bottom: none; }
+#chats li.deelkop:hover { background: none; }
+#chats li.klapregel { display: flex; min-height: 48px; padding: 0 14px; font-size: 14px; color: var(--zacht); gap: 8px; }
+.wachtregel { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 12px; background: var(--wacht-zacht); color: var(--wacht); font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--lijn); flex: none; }
+.wachtregel > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wachtregel button { min-height: 36px; padding: 4px 14px; border-radius: 999px; font-size: 13px; flex: none; }
+.leeg { padding: 30px 16px; color: var(--zacht); text-align: center; }
+
+/* gesprek */
+#gesprek { flex-direction: column; background: var(--bg); min-width: 0; }
+.gbalk { display: flex; align-items: center; gap: 8px; padding: 6px 8px; padding-top: calc(6px + env(safe-area-inset-top)); background: var(--vlak); border-bottom: 1px solid var(--lijn); flex: none; }
+.gbalk .titel { min-width: 0; flex: 1; }
+.gbalk .titel b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15.5px; }
+.gbalk .titel span { display: block; font-size: 12.5px; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#berichten { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 10px 12px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.meerlaad { text-align: center; font-size: 12.5px; color: var(--flauw); padding: 8px; }
+.dag { text-align: center; margin: 12px 0 8px; }
+.dag span { background: var(--vlak); border: 1px solid var(--lijn); color: var(--zacht); font-size: 12px; border-radius: 999px; padding: 3px 10px; }
+.br { display: flex; margin: 3px 0; }
+.br.mij { justify-content: flex-end; }
+.ballon { position: relative; max-width: min(82%, 560px); background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; padding: 6px 9px 4px; overflow-wrap: anywhere; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.br.mij .ballon { background: var(--accent-zacht); border-color: transparent; }
+.ballon .afz { font-size: 12.5px; font-weight: 600; margin-bottom: 1px; }
+.ballon .tx { white-space: pre-wrap; }
+.ballon .tx code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); border-radius: 4px; padding: 0 3px; }
+.ballon .voet { font-size: 11px; color: var(--flauw); text-align: right; margin-top: 1px; display: flex; gap: 6px; justify-content: flex-end; }
+.ballon.weg .tx { font-style: italic; color: var(--zacht); }
+.ballon.droog, .br.mij .ballon.droog { border: 1.5px dashed var(--wacht); background: var(--wacht-zacht); }
+.ballon .droogregel { font-size: 11.5px; color: var(--wacht); font-weight: 600; }
+.ballon.flits { outline: 2px solid var(--accent); }
+.citaat { border-left: 3px solid var(--accent); background: rgba(127,127,127,.09); border-radius: 6px; padding: 4px 8px; margin: 2px 0 4px; font-size: 13px; cursor: pointer; }
+.citaat b { display: block; font-size: 12px; }
+.citaat span { display: block; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reacties { display: flex; gap: 4px; flex-wrap: wrap; margin: -2px 0 4px; }
+.br.mij .reacties { justify-content: flex-end; }
+.chip { background: var(--vlak); border: 1px solid var(--lijn); border-radius: 999px; font-size: 13px; padding: 0 7px; line-height: 22px; }
+.chip.mij { border-color: var(--accent); }
+.chip.droog { border-style: dashed; border-color: var(--wacht); }
+.foto { display: block; max-width: 100%; width: 260px; max-height: 340px; object-fit: cover; border-radius: 8px; margin: 2px 0 4px; cursor: zoom-in; background: var(--code); }
+.sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
+.tegel { display: flex; align-items: center; gap: 10px; min-height: 52px; width: 240px; max-width: 100%; text-align: left; border-radius: 8px; background: var(--code); border: none; padding: 8px 10px; margin: 2px 0 4px; color: var(--inkt); text-decoration: none; }
+.tegel .ic { font-size: 20px; width: 28px; text-align: center; flex: none; }
+.tegel small { display: block; color: var(--zacht); font-size: 12px; }
+.tegel .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.tegel > span:last-child { min-width: 0; }
+video.speler { width: 260px; max-width: 100%; border-radius: 8px; display: block; margin: 2px 0 4px; }
+audio { width: 250px; max-width: 100%; display: block; margin: 2px 0 4px; height: 40px; }
+.uitknop { font-size: 12.5px; padding: 4px 10px; min-height: 32px; margin: 0 0 4px; }
+.uitgeschreven { font-size: 13.5px; color: var(--zacht); border-left: 2px solid var(--lijn); padding-left: 8px; margin: 2px 0 4px; white-space: pre-wrap; }
+.zweef { position: absolute; top: 2px; right: 2px; display: none; width: 28px; height: 28px; min-height: 0; padding: 0; border-radius: 50%; font-size: 15px; line-height: 1; opacity: .85; }
+#nieuwknop { position: absolute; right: 14px; bottom: 12px; border-radius: 999px; background: var(--accent); color: var(--vlak); border: none; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.2); min-height: 40px; }
+.geswrap { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* klad en vraagkaart */
+.kladrij { display: flex; justify-content: flex-end; margin: 10px 0 4px; }
+.kladrij .ballon { border: 1.5px dashed var(--accent); background: var(--vlak); max-width: min(92%, 560px); -webkit-user-select: text; user-select: text; }
+.kladrij .kop { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 2px; display: flex; gap: 8px; align-items: baseline; }
+.kladrij .kop .sp { flex: 1; }
+.knoppen { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.knoppen button { min-height: 44px; flex: 1 1 auto; font-weight: 600; }
+.knoppen button.bevestig { background: var(--fout); border-color: var(--fout); color: #fff; }
+.linkknop { border: none; background: none; padding: 4px 0; color: var(--accent); font-size: 12.5px; min-height: 0; }
+.vraagdetail { font-size: 13.5px; margin-top: 8px; border-top: 1px solid var(--lijn); padding-top: 8px; }
+.vraagdetail .ctx { color: var(--zacht); font-size: 13px; margin-top: 4px; white-space: pre-wrap; }
+.kaart { margin: 10px 2px 4px; border: 1px solid var(--lijn); border-left: 3px solid var(--wacht); border-radius: 10px; padding: 10px 12px; background: var(--vlak); }
+.kaart .meta { font-size: 12px; color: var(--wacht); font-weight: 700; }
+.kaart h3 { font-size: 15.5px; margin: 4px 0; line-height: 1.35; }
+.kaart .ctx { font-size: 13px; color: var(--zacht); white-space: pre-wrap; }
+.kaart details { margin-top: 6px; }
+.kaart summary { cursor: pointer; color: var(--accent); font-size: 13px; min-height: 32px; }
+.kaart pre { white-space: pre-wrap; word-break: break-word; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); border-radius: 8px; padding: 8px; margin: 4px 0 0; }
+
+/* onderaan: snelknoppen en invoer */
+.onder { position: relative; flex: none; background: var(--vlak); border-top: 1px solid var(--lijn); padding: 6px 8px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+.snel { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.snel button { white-space: nowrap; border-radius: 999px; font-size: 13px; padding: 5px 12px; min-height: 36px; flex: none; }
+.bezetregel { font-size: 12.5px; color: var(--zacht); padding: 0 4px 6px; }
+.strook { display: flex; align-items: center; gap: 8px; background: var(--bg); border-left: 3px solid var(--accent); border-radius: 6px; padding: 4px 4px 4px 8px; margin-bottom: 6px; font-size: 13px; }
+.strook > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strook.koppel { border-left-color: var(--wacht); }
+.strook button { width: 36px; height: 36px; padding: 0; border: none; background: none; flex: none; }
+.invoer { display: flex; align-items: flex-end; gap: 6px; }
+.invoer textarea { flex: 1; min-width: 0; font-size: 16px; line-height: 1.35; border: 1px solid var(--lijn); border-radius: 20px; padding: 10px 14px; background: var(--bg); resize: none; max-height: 40vh; min-height: 44px; }
+.mic { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.mic svg { width: 19px; height: 19px; }
+.mic.neemt { background: var(--fout); border-color: var(--fout); color: #fff; animation: puls 1.4s ease-in-out infinite; }
+.mic.schrijft { opacity: .6; cursor: progress; }
+@keyframes puls { 50% { opacity: .45; } }
+/* bijlagen: paperclip, menu, strook boven het invoerveld, sleeplaag */
+.clip { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; flex: none; border: none; background: transparent; }
+.clip svg { width: 21px; height: 21px; }
+.clipmenu { position: absolute; left: 8px; bottom: calc(100% + 4px); z-index: 20; background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 4px; min-width: 200px; }
+.clipmenu button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; border: none; background: none; text-align: left; font-size: 15px; border-radius: 8px; padding: 0 10px; }
+.clipmenu button:hover { background: var(--bg); }
+.clipmenu .ic { width: 22px; text-align: center; color: var(--zacht); }
+.verstopt { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
+#bijlagen { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 2px 0 8px; overscroll-behavior-x: contain; max-width: 100%; }
+.bijl { position: relative; flex: none; width: 96px; border: 1px solid var(--lijn); border-radius: 10px; background: var(--bg); padding: 4px; font-size: 11.5px; line-height: 1.3; }
+.bijl .beeld { display: grid; place-items: center; width: 100%; height: 64px; border-radius: 6px; object-fit: cover; background: var(--code); font-size: 22px; color: var(--zacht); }
+.bijl .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+.bijl .st { display: block; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bijl.bezig .st { color: var(--wacht); font-weight: 600; }
+.bijl.fout { border-color: var(--fout); }
+.bijl.fout .st { color: var(--fout); font-weight: 600; white-space: normal; }
+.bijl .weg { position: absolute; top: 2px; right: 2px; width: 30px; height: 30px; min-height: 0; padding: 0; border-radius: 50%; border: none; background: rgba(0,0,0,.55); color: #fff; font-size: 14px; line-height: 1; }
+.sleeplaag { position: absolute; inset: 0; z-index: 25; display: grid; place-items: center; border: 3px dashed var(--accent); border-radius: 6px; background: rgba(63,107,82,.14); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-weight: 700; font-size: 18px; pointer-events: none; }
+.ballon .bijlagenrij { display: flex; flex-direction: column; gap: 2px; }
+/* spraakbericht: opnamebalk in de plaats van het invoerveld, blokje in de strook, speelknop */
+.opnamebalk { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.opnamebalk > button { min-height: 44px; border-radius: 22px; padding: 0 14px; font-weight: 600; flex: none; }
+.opnamemid { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; justify-content: center; font-variant-numeric: tabular-nums; font-size: 15px; }
+.opnamemid .stip { width: 12px; height: 12px; border-radius: 50%; background: var(--fout); flex: none; animation: puls 1.4s ease-in-out infinite; }
+.opnamemid .meter { flex: 1; max-width: 160px; min-width: 30px; height: 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--lijn); overflow: hidden; }
+.opnamemid .meter > span { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left center; transform: scaleX(0); transition: transform 80ms linear; }
+.bijl.spraak { width: 200px; display: flex; align-items: center; gap: 4px; padding: 0 0 0 4px; }
+.bijl.spraak .speel { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: none; background: var(--accent); color: var(--vlak); font-size: 16px; flex: none; }
+.bijl.spraak .tx2 { flex: 1; min-width: 0; }
+.bijl.spraak .weg { position: static; width: 44px; height: 44px; background: none; color: var(--zacht); font-size: 16px; flex: none; }
+.tegel .speel + span .nm { white-space: normal; }
+.tegel .speel { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: none; background: var(--accent); color: var(--vlak); font-size: 16px; flex: none; }
+#stuurknop { min-height: 44px; border-radius: 22px; padding: 0 14px; font-weight: 600; flex: none; }
+#stuurknop.droog { background: var(--wacht); border-color: var(--wacht); color: var(--vlak); }
+#stuurknop.echt { background: var(--accent); border-color: var(--accent); color: var(--vlak); }
+
+/* blad onderaan, foto groot, melding */
+.achter { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.blad { background: var(--vlak); width: 100%; max-width: 560px; border-radius: 16px 16px 0 0; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; }
+.blad h3 { margin: 2px 0 10px; font-size: 16px; }
+.blad p.uitleg { margin: 0 0 10px; font-size: 13px; color: var(--zacht); }
+.blad .actie { display: block; width: 100%; text-align: left; min-height: 48px; border: none; border-bottom: 1px solid var(--lijn); border-radius: 0; background: none; font-size: 15.5px; padding: 0 6px; }
+.blad .actie:last-child { border-bottom: none; }
+.blad label { display: block; font-size: 13px; color: var(--zacht); margin: 8px 0 4px; }
+.blad input, .blad select, .blad textarea { width: 100%; font-size: 16px; border: 1px solid var(--lijn); border-radius: 10px; padding: 9px 11px; background: var(--bg); }
+.blad textarea { min-height: 110px; resize: vertical; }
+.blad .metmic { display: flex; gap: 6px; align-items: flex-end; }
+.blad .metmic textarea { flex: 1; }
+.blad .knoppen { justify-content: flex-end; }
+.blad .knoppen button { flex: 0 1 auto; min-width: 110px; }
+.blad .emojis { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 0 8px; border-bottom: 1px solid var(--lijn); }
+.blad .emojis button { font-size: 22px; width: 46px; height: 46px; padding: 0; border-radius: 50%; border: none; background: var(--bg); }
+.schakel { display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: 15.5px; }
+.schakel input { width: 22px; height: 22px; flex: none; }
+.stilregel { font-size: 13px; color: var(--zacht); margin: 4px 0; }
+.fotogroot { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.92); display: grid; place-items: center; }
+.fotogroot img { max-width: 100vw; max-height: 100dvh; object-fit: contain; }
+.fotogroot button { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 10px; color: #fff; background: rgba(255,255,255,.15); border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 20px; }
+#melding { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 50; background: var(--inkt); color: var(--bg); border-radius: 10px; padding: 10px 14px; font-size: 14px; max-width: min(92vw, 520px); box-shadow: 0 4px 18px rgba(0,0,0,.25); }
+#melding.fout { background: var(--fout); color: #fff; }
+#melding a { color: inherit; font-weight: 700; margin-left: 8px; }
+
+/* breed scherm: twee kolommen */
+@media (hover: hover) and (pointer: fine) {
+  .br:hover .zweef { display: block; }
+}
+@media (min-width: 960px) {
+  html, body { overflow: hidden; }
+  #app { height: 100vh; display: flex; flex-direction: column; }
+  nav.tabs { display: none; }
+  .appkop nav.breedlinks { display: flex; }
+  #hoofd { flex: 1; min-height: 0; display: grid; grid-template-columns: 360px minmax(0, 1fr); }
+  #lijstscherm { display: flex !important; flex-direction: column; min-height: 0; border-right: 1px solid var(--lijn); background: var(--vlak); }
+  #lijst { flex: 1; overflow-y: auto; min-height: 0; }
+  #gesprek, body.open #gesprek { display: flex; position: relative; height: auto; min-height: 0; }
+  .gbalk .terug { display: none; }
+  #hoofd #leegrechts { display: grid; }
+  body.open #hoofd #leegrechts { display: none; }
+  body:not(.open) #gesprek { display: none; }
+  .ballon { max-width: min(70%, 620px); }
+  #berichten { padding: 10px 6% 14px; }
+  .onder { padding-left: 6%; padding-right: 6%; }
+  .blad { border-radius: 16px; margin-bottom: 8vh; }
+  .achter { align-items: center; }
+}
+.appkop .breedlinks { display: none; gap: 14px; font-size: 14px; }
+.appkop .breedlinks a { color: var(--zacht); text-decoration: none; }
+.appkop .breedlinks a.aan { color: var(--inkt); font-weight: 600; }
+#leegrechts { display: none; place-items: center; color: var(--flauw); font-size: 14px; background: var(--bg); }
+
+/* --- beweging: alleen transform en opacity, kort; "minder beweging" zet alles uit --- */
+/* dezelfde maat als de rest van de app (afgesproken met god--godchat-ui, staat ook in index.html) */
+:root { --snel: 160ms; --gewoon: 260ms; --traag: 340ms; --uit: cubic-bezier(.2,.8,.2,1); --in: cubic-bezier(.4,0,1,1); }
+@keyframes schuif-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes schuif-uit { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes lijst-weg { from { transform: none; opacity: 1; } to { transform: translateX(-22%); opacity: .55; } }
+@keyframes lijst-terug { from { transform: translateX(-22%); opacity: .55; } to { transform: none; opacity: 1; } }
+@keyframes vervaag-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vervaag-uit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes op-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes blad-op { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes blad-neer { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes zoem-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes zoem-uit { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.96); } }
+@keyframes ballon-links { from { opacity: 0; transform: translate(-10px, 6px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes ballon-rechts { from { opacity: 0; transform: translate(10px, 6px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes menu-in { from { opacity: 0; transform: translateY(6px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes melding-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes knop-in { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }   /* tussen Dashboard en WhatsApp: een zachte overgang in plaats van een sprong */
+  body.schuift-in #gesprek { animation: schuif-in var(--traag) var(--uit) both; box-shadow: -8px 0 24px rgba(0,0,0,.12); }
+  body.schuift-in #lijstscherm { animation: lijst-weg var(--traag) var(--uit) both; }
+  body.schuift-uit #gesprek { animation: schuif-uit var(--gewoon) var(--in) both; box-shadow: -8px 0 24px rgba(0,0,0,.12); }
+  body.schuift-uit #lijstscherm { animation: lijst-terug var(--gewoon) var(--in) both; }
+  #gesprek.wissel #berichten, #gesprek.wissel .gbalk { animation: vervaag-in var(--snel) ease-out both; }
+  .ballon.in { animation: ballon-links var(--gewoon) var(--uit) both; }
+  .br.mij .ballon.in, .ballon.mij.in, .ballon.droog.in { animation-name: ballon-rechts; }
+  .in-kaart { animation: op-in var(--gewoon) var(--uit) both; }
+  .achter { animation: vervaag-in var(--snel) ease-out both; }
+  .achter .blad { animation: blad-op var(--gewoon) var(--uit) both; }
+  .achter.dicht { animation: vervaag-uit var(--snel) ease-in both; }
+  .achter.dicht .blad { animation: blad-neer var(--snel) var(--in) both; }
+  .fotogroot { animation: vervaag-in var(--snel) ease-out both; }
+  .fotogroot img { animation: zoem-in var(--gewoon) var(--uit) both; }
+  .fotogroot.dicht { animation: vervaag-uit var(--snel) ease-in both; }
+  .fotogroot.dicht img { animation: zoem-uit var(--snel) ease-in both; }
+  .clipmenu:not([hidden]) { animation: menu-in var(--snel) var(--uit) both; transform-origin: 12px 100%; }
+  #melding:not([hidden]) { animation: melding-in var(--snel) var(--uit) both; }
+  #nieuwknop:not([hidden]) { animation: knop-in var(--snel) var(--uit) both; }
+  #antwoordstrook:not([hidden]), #bijlagen:not([hidden]), #wachtregel:not([hidden]), #bezetregel:not([hidden]),
+  #opnamebalk:not([hidden]) { animation: op-in var(--gewoon) var(--uit) both; }
+  #chats.wissel { animation: vervaag-in var(--snel) ease-out both; }
+  button, #chats li { transition: transform var(--snel) var(--uit), background-color var(--snel) ease, opacity var(--snel) ease; }
+  button:active:not(:disabled) { transform: scale(.96); }
+  #chats li:active { background: var(--bg); }
+  #berichten { scroll-behavior: auto; }
+}
+@media (min-width: 960px) and (prefers-reduced-motion: no-preference) {
+  .achter .blad { animation: zoem-in var(--gewoon) var(--uit) both; }
+  .achter.dicht .blad { animation: zoem-uit var(--snel) ease-in both; }
+}
+
+/* dicteren: een regel boven het veld zolang je opneemt of het uitschrijven loopt */
+.dicteerstand { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--zacht); padding: 2px 4px 6px; font-variant-numeric: tabular-nums; animation: gc-dicteer var(--snel, 160ms) var(--uit, ease-out) both; }
+.dicteerstand.neemt { color: var(--fout); font-weight: 600; }
+.dicteerstand .stip { width: 10px; height: 10px; border-radius: 50%; background: var(--fout); flex: none; animation: puls 1.4s ease-in-out infinite; }
+.dicteerstand .draai, .mic.schrijft::after { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--lijn); border-top-color: var(--accent); flex: none; animation: gc-draai .8s linear infinite; }
+.mic { position: relative; }
+.mic.schrijft { opacity: 1; cursor: progress; }
+.mic.schrijft svg { opacity: .25; }
+.mic.schrijft::after { content: ""; position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; box-sizing: border-box; }
+@keyframes gc-draai { to { transform: rotate(360deg); } }
+@keyframes gc-dicteer { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .dicteerstand .draai, .mic.schrijft::after { animation-duration: 2.4s; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="appkop">
+    <a class="merk" href="/">GodChat</a>
+    <nav class="breedlinks"><a href="/">Dashboard</a><a href="/#boom">Chats</a><a href="/#verloop">Verloop</a><a class="aan" href="/wa">WhatsApp</a></nav>
+    <span class="nep" id="nepmerk" hidden>nepscherm</span>
+    <span class="nep" id="droogmerk" hidden>droogloop</span>
+    <button class="ikoon" id="tandwiel" title="Instellingen" aria-label="Instellingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </header>
+  <div class="bridgebalk" id="bridgebalk" hidden>De WhatsApp-bridge is niet verbonden: berichten komen niet binnen en versturen lukt niet.</div>
+  <div id="hoofd">
+    <div id="lijstscherm">
+      <nav class="tabs"><a href="/">Dashboard</a><a href="/#boom">Chats</a><a href="/#verloop">Verloop</a><a class="aan" href="/wa">WhatsApp</a></nav>
+      <section id="lijst">
+        <div class="zoek">
+          <input id="zoekveld" type="search" placeholder="Zoek een gesprek" autocomplete="off" enterkeyhint="search">
+          <div class="filters" id="filters">
+            <button data-filter="alles" class="aan">Alles</button>
+            <button data-filter="klanten">Klanten</button>
+            <button data-filter="wacht">Wacht op jou<span class="tel" id="wachttel"></span></button>
+          </div>
+        </div>
+        <ul id="chats"></ul>
+        <div class="leeg" id="lijstleeg" hidden>Laden…</div>
+      </section>
+    </div>
+    <div id="leegrechts">Kies een gesprek.</div>
+    <section id="gesprek" aria-label="Gesprek">
+      <div class="gbalk">
+        <button class="ikoon terug" id="terug" aria-label="Terug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="rond klein" id="grond"></div>
+        <div class="titel"><b id="gnaam"></b><span id="gsub"></span></div>
+        <button class="ikoon" id="gmeer" aria-label="Meer"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+      </div>
+      <div class="wachtregel" id="wachtregel" hidden><span id="wachttekst"></span><button id="wachtklaar" aria-label="Klaar: hoeft geen antwoord">Klaar</button></div>
+      <div class="geswrap">
+        <div id="berichten"></div>
+        <button id="nieuwknop" hidden>↓ nieuw</button>
+      </div>
+      <div class="sleeplaag" id="sleeplaag" hidden>Laat los om mee te sturen</div>
+      <div class="onder">
+        <div class="bezetregel" id="bezetregel" hidden></div>
+        <div class="snel" id="snel"></div>
+        <div class="strook" id="antwoordstrook" hidden><span id="antwoordtekst"></span><button id="antwoordweg" aria-label="Niet meer citeren">✕</button></div>
+        <div class="strook koppel" id="koppelstrook" hidden><span id="koppeltekst"></span><button id="koppelweg" aria-label="Los van de vraag">✕</button></div>
+        <div id="bijlagen" aria-label="Bijlagen" hidden></div>
+        <div class="clipmenu" id="clipmenu" role="menu" hidden>
+          <button role="menuitem" data-kies="kiesfoto"><span class="ic">▢</span>Foto of video</button>
+          <button role="menuitem" data-kies="kiesbestand"><span class="ic">▤</span>Bestand</button>
+          <button role="menuitem" data-spraak="1"><span class="ic">●</span>Spraakbericht</button>
+        </div>
+        <input type="file" id="kiesfoto" class="verstopt" accept="image/*,video/*" multiple tabindex="-1" aria-hidden="true">
+        <input type="file" id="kiesbestand" class="verstopt" multiple tabindex="-1" aria-hidden="true">
+        <div class="invoer">
+          <button class="mic" id="mic" title="Dicteer: tik, praat, tik nogmaals (tekst in het veld). Lang drukken: spraakbericht opnemen" aria-label="Dicteer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+          <button class="clip" id="clip" title="Foto, video of bestand meesturen" aria-label="Bijlage" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7"/></svg></button>
+          <textarea id="tekst" rows="1" placeholder="Bericht" enterkeyhint="enter"></textarea>
+          <button id="stuurknop" class="droog">Stuur</button>
+        </div>
+        <div class="opnamebalk" id="opnamebalk" hidden>
+          <button id="opnameweg" type="button" aria-label="Opname weggooien">Annuleer</button>
+          <span class="opnamemid" role="status"><span class="stip" aria-hidden="true"></span><span id="opnametijd">0:00</span><span class="meter" aria-hidden="true"><span id="opnamemeter"></span></span></span>
+          <button id="opnameklaar" type="button" class="hoofd" aria-label="Opname stoppen">Klaar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div id="melding" hidden></div>
+<script nonce="{{NONCE}}">
+"use strict";
+const $ = (id) => document.getElementById(id);
+const TIK = document.querySelector('meta[name="wa-tik"]').content;
+const AANRAAK = matchMedia("(pointer: coarse)").matches;
+const KLANTKLEUR = { "god": "#6b5ea8" };   // de God-chat vast; elke klant krijgt een kleur uit zijn sleutel (kleurUit)
+const GROEP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 13.6c2.4.2 4 1.8 4.5 4.4"/></svg>';
+const MIC_SVG = $("mic").innerHTML;
+
+const s = {
+  chats: new Map(), volgorde: [], max: 0, kv: "", kladden: {}, versturen: "droog", echt: false, nep: false, proef: false,
+  zelf: "", klanten: [], bridge: {}, filter: "alles", zoek: "", wachtN: 0, afgerondOpen: false,
+  open: null, berichten: [], cursor: null, meer: false, laadt: false, droog: [], kaarten: [],
+  concepten: {}, antwoordOp: null, koppel: null, bezig: false, uitschrijven: {}, droogReacties: {},
+  knopen: new Map(),
+  bijlagen: {}, droogBeelden: {},   // bijlagen per gesprek (tot herladen); beelden van droogloopberichten per bericht-id
+};
+const MAX_BIJLAGE = 100 * 1024 * 1024, MAX_BIJLAGEN = 10;
+
+// --- hulp ---------------------------------------------------------------------------------------------------------
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "style") Object.assign(e.style, v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : String(v));
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  return e;
+}
+function svg(html) { const t = document.createElement("template"); t.innerHTML = html; return t.content.firstChild; }   // alleen vaste, eigen iconen
+function kleurUit(tekst) { let h = 0; for (const c of String(tekst)) h = (h * 31 + c.codePointAt(0)) >>> 0; return `hsl(${h % 360} 38% 44%)`; }
+function initialen(naam) {
+  const w = String(naam || "").replace(/[^\p{L}\p{N}\s]/gu, " ").trim().split(/\s+/).filter(Boolean);
+  if (!w.length) return "#";
+  return (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
+}
+function rondje(c, klein) {
+  const r = el("div", { class: "rond" + (klein ? " klein" : "") });
+  if (c.zelf) { r.textContent = "Jij"; r.style.background = "var(--accent)"; r.style.fontSize = klein ? "12px" : "14px"; }
+  else if (c.groep) { r.append(svg(GROEP_SVG)); r.style.background = kleurUit(c.jid); }
+  else { r.textContent = initialen(c.naam); r.style.background = kleurUit(c.naam); }
+  return r;
+}
+function klantLabel(sleutel, naam) {
+  const k = KLANTKLEUR[sleutel] || kleurUit(sleutel);
+  return el("span", { class: "label", style: { background: k, color: "#fff" } }, naam || sleutel);
+}
+const DAG = ["zo", "ma", "di", "wo", "do", "vr", "za"], MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+const twee = (n) => String(n).padStart(2, "0");
+function uurVan(ts) { const d = new Date(ts * 1000); return twee(d.getHours()) + ":" + twee(d.getMinutes()); }
+function dagStart(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+function lijstTijd(ts) {
+  if (!ts) return "";
+  const d = new Date(ts * 1000), nu = new Date(), dagen = Math.round((dagStart(nu) - dagStart(d)) / 864e5);
+  if (dagen <= 0) return uurVan(ts);
+  if (dagen === 1) return "gisteren";
+  if (dagen < 7) return ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"][d.getDay()];
+  return twee(d.getDate()) + "/" + twee(d.getMonth() + 1) + (d.getFullYear() !== nu.getFullYear() ? "/" + String(d.getFullYear()).slice(2) : "");
+}
+function dagNaam(ts) {
+  const d = new Date(ts * 1000), nu = new Date(), dagen = Math.round((dagStart(nu) - dagStart(d)) / 864e5);
+  if (dagen <= 0) return "Vandaag";
+  if (dagen === 1) return "Gisteren";
+  return `${DAG[d.getDay()]} ${d.getDate()} ${MAAND[d.getMonth()]}` + (d.getFullYear() !== nu.getFullYear() ? " " + d.getFullYear() : "");
+}
+function grootte(n) { if (!n) return ""; if (n < 1024) return n + " B"; if (n < 1048576) return Math.round(n / 1024) + " kB"; return (n / 1048576).toFixed(1).replace(".", ",") + " MB"; }
+const MEDIAWOORD = { image: "Foto", video: "Video", audio: "Spraakbericht", document: "Document", sticker: "Sticker" };
+
+// Tekst van vreemden: alleen als tekstknopen. Links (http/https) en WhatsApp-opmaak worden als eigen elementen gebouwd.
+function opmaak(tekst, ouder) {
+  const re = /https?:\/\/[^\s<>"'`]+/g;
+  let i = 0;
+  for (const m of tekst.matchAll(re)) {
+    let url = m[0].replace(/[.,;:!?)\]}»]+$/, "");
+    stijl(tekst.slice(i, m.index), ouder);
+    ouder.append(el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, url));
+    i = m.index + url.length;
+  }
+  stijl(tekst.slice(i), ouder);
+}
+function stijl(t, ouder) {
+  if (!t) return;
+  const re = /(^|[\s(\[{"'])([*_~`])([^\s*_~`](?:[^\n]*?[^\s])?)\2(?=$|[\s.,;:!?)\]}"'])/g;
+  let i = 0;
+  for (const m of t.matchAll(re)) {
+    const start = m.index + m[1].length;
+    ouder.append(document.createTextNode(t.slice(i, start)));
+    const tag = { "*": "b", "_": "i", "~": "s", "`": "code" }[m[2]];
+    ouder.append(el(tag, null, m[3]));
+    i = start + m[2].length * 2 + m[3].length;
+  }
+  ouder.append(document.createTextNode(t.slice(i)));
+}
+
+function melding(tekst, fout, link) {
+  const m = $("melding");
+  m.replaceChildren(document.createTextNode(tekst));
+  if (link) m.append(link);
+  m.className = fout ? "fout" : ""; m.hidden = false;
+  clearTimeout(melding.t); melding.t = setTimeout(() => (m.hidden = true), link ? 9000 : fout ? 7000 : 3500);
+}
+
+
+// --- beweging: alleen als de gebruiker geen "minder beweging" vroeg; transform en opacity in CSS ---------------------
+const RUSTIG = matchMedia("(prefers-reduced-motion: reduce)"), SMAL = matchMedia("(max-width: 959px)");
+function naAnimatie(knoop, ms) {   // wacht op het einde van de animatie van precies deze knoop (met een vangnet)
+  return new Promise((klaar) => {
+    if (RUSTIG.matches) return klaar();
+    let weg = false;
+    const af = (e) => { if (e && e.target !== knoop) return; if (weg) return; weg = true; knoop.removeEventListener("animationend", af); klaar(); };
+    knoop.addEventListener("animationend", af);
+    setTimeout(af, ms + 120);
+  });
+}
+let schuifBeurt = 0, lijstScroll = 0;
+// op de telefoon scrolt soms body, soms het document: onthoud en herstel allebei
+function leesScroll() { return Math.max(window.scrollY, document.body.scrollTop, document.documentElement.scrollTop); }
+function zetScroll(y) { window.scrollTo(0, y); document.body.scrollTop = y; document.documentElement.scrollTop = y; }
+
+// --- api --------------------------------------------------------------------------------------------------------------
+async function haal(pad) {
+  const r = await fetch(pad, { cache: "no-store" });
+  if (!r.ok) throw new Error((await r.text()) || r.status);
+  return r.json();
+}
+function bewaarConcepten() {
+  if (s.open) s.concepten[s.open] = $("tekst").value;
+  try { sessionStorage.setItem("wa-concepten", JSON.stringify(s.concepten)); } catch (e) {}
+}
+async function stuurPost(pad, body) {
+  const r = await fetch(pad, { method: "POST", headers: { "content-type": "application/json", "X-WA-Tik": TIK }, body: JSON.stringify(body) });
+  const t = await r.text();
+  if (r.status === 403 && t.includes("tik-sleutel")) {   // de app is herstart: pagina opnieuw, wat getypt was blijft
+    bewaarConcepten();
+    melding("De app is herstart; de pagina laadt opnieuw.", true);
+    setTimeout(() => location.reload(), 900);
+    throw new Error(t);
+  }
+  if (!r.ok) {
+    const fout = new Error(t || String(r.status));
+    const weg = r.headers.get("X-WA-Weg");   // bijlagen die al weg zijn (of onzeker): niet nog eens aanbieden
+    if (weg) fout.weg = weg.split(",");
+    throw fout;
+  }
+  return JSON.parse(t);
+}
+
+// --- lijst ------------------------------------------------------------------------------------------------------------
+// "Wacht op jou" in drie delen: 1 antwoord klaar (klad), 2 wacht op je antwoord (of een vraagkaart), 3 waarschijnlijk afgerond
+function wachtOp(c) { return c.wacht && c.wacht.soort !== "afgerond" ? c.wacht : null; }
+function deelVan(c) { if (c.klad) return 1; if (wachtOp(c) || c.vraag) return 2; if (c.wacht) return 3; return 0; }
+function wachtDuur(sinds) {
+  const min = Math.max(0, Math.floor((Date.now() / 1000 - sinds) / 60));
+  if (min < 60) return min + " min";
+  if (min < 1440) return Math.floor(min / 60) + " u";
+  return Math.floor(min / 1440) + " d";
+}
+const VINK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function zetChats(lijst) {
+  for (const c of lijst) s.chats.set(c.jid, c);
+  s.volgorde = [...s.chats.values()].sort((a, b) => (b.laatste?.ts || 0) - (a.laatste?.ts || 0)).map((c) => c.jid);
+}
+function tekenLijst() {
+  const ul = $("chats"), zoek = s.zoek.toLowerCase();
+  let n = 0;
+  const items = [], delen = { 1: [], 2: [], 3: [] };
+  for (const jid of s.volgorde) {
+    const c = s.chats.get(jid), deel = deelVan(c);
+    if (deel === 1 || deel === 2) n++;
+    if (s.filter === "klanten" && !c.klant) continue;
+    if (s.filter === "wacht" && !deel) continue;
+    if (zoek && !(`${c.naam} ${c.klant_naam || ""} ${c.routing_naam || ""}`.toLowerCase().includes(zoek))) continue;
+    if (s.filter === "wacht") delen[deel].push(c); else items.push(c);
+  }
+  $("wachttel").textContent = n ? String(n) : "";
+  let knopen;
+  if (s.filter === "wacht") {
+    knopen = [];
+    const kop = (t) => el("li", { class: "deelkop" }, t);
+    if (delen[1].length) knopen.push(kop("Antwoord klaar"), ...delen[1].map((c) => lijstRegel(c)));
+    if (delen[2].length) knopen.push(kop("Wacht op je antwoord"), ...delen[2].map((c) => lijstRegel(c, true)));
+    if (delen[3].length) {
+      knopen.push(el("li", { class: "klapregel", "data-klap": "1", role: "button", tabindex: "0", "aria-expanded": s.afgerondOpen ? "true" : "false" },
+        el("span", null, (s.afgerondOpen ? "▾ " : "▸ ") + "Waarschijnlijk afgerond (" + delen[3].length + ")")));
+      if (s.afgerondOpen) knopen.push(...delen[3].map((c) => lijstRegel(c, true)));
+    }
+  } else {
+    knopen = items.slice(0, s.zoek ? 400 : 250).map((c) => lijstRegel(c));
+  }
+  ul.replaceChildren(...knopen);
+  $("lijstleeg").hidden = knopen.length > 0;
+  $("lijstleeg").textContent = s.filter === "wacht" ? "Niets wacht op jou." : "Geen gesprekken gevonden.";
+}
+async function vinkAf(jid, terug) {
+  const c = s.chats.get(jid); if (!c) return;
+  if (!terug && !c.wacht) return;
+  try {
+    const r = await stuurPost("/api/wa/klaar", terug ? { chat: jid, terug: true } : { chat: jid, tot: c.wacht.tot });
+    if (r.chat) zetChats([r.chat]);
+    if ("wacht_n" in r) s.wachtN = r.wacht_n;
+    tekenLijst(); if (s.open === jid) tekenKop();
+    if (terug) melding("Weer bij wacht op je antwoord.");
+    else melding("Afgevinkt", false, el("a", { href: "#", onclick: (e) => { e.preventDefault(); $("melding").hidden = true; vinkAf(jid, true); } }, "Ongedaan maken"));
+  } catch (e) { melding("Afvinken lukte niet: " + e.message, true); }
+}
+function lijstRegel(c, metVink) {
+  const l = c.laatste || {};
+  const rij2 = el("div", { class: "rij2" });
+  if (c.zelf) rij2.append("de God-chat leest hier mee");
+  else {
+    if (l.van_mij) rij2.append(el("span", { class: "wie" }, "Jij: "));
+    else if (c.groep && l.wie) rij2.append(el("span", { class: "wie" }, l.wie + ": "));
+    rij2.append(l.tekst || "");
+  }
+  const merk = el("div", { class: "merkjes" });
+  if (c.klad) merk.append(el("span", { class: "merk-k klad", title: "klad klaar om te sturen" }, "klad"));
+  if (c.vraag) merk.append(el("span", { class: "merk-k vraag", title: "open vraag" }, "vraag"));
+  if (c.bezet) merk.append(el("span", { class: "merk-k lus", title: c.bezet }, "lus"));
+  const vink = metVink && c.wacht;
+  const tijd = vink ? el("span", { class: "wachttijd" }, "wacht " + wachtDuur(c.wacht.sinds))
+    : el("span", null, s.filter !== "wacht" && wachtOp(c) ? el("span", { class: "bol", title: "wacht op je antwoord" }) : null, lijstTijd(l.ts));
+  const li = el("li", { "data-jid": c.jid, class: [c.jid === s.open ? "gekozen" : "", vink ? "metvink" : ""].join(" ").trim() || null },
+    rondje(c),
+    el("div", { class: "midden" },
+      el("div", { class: "rij1" }, el("span", { class: "nm" }, c.naam), c.klant ? klantLabel(c.klant, c.klant_naam) : null),
+      rij2),
+    el("div", { class: "rechtskol" }, tijd, merk),
+    vink ? el("button", { class: "vink", "data-vink": c.jid, "aria-label": "Klaar: hoeft geen antwoord", title: "Klaar: hoeft geen antwoord" }, svg(VINK_SVG)) : null);
+  return li;
+}
+$("chats").addEventListener("click", (e) => {
+  const v = e.target.closest("button[data-vink]");
+  if (v) { e.stopPropagation(); vinkAf(v.dataset.vink); return; }
+  if (e.target.closest("[data-klap]")) { s.afgerondOpen = !s.afgerondOpen; tekenLijst(); return; }
+  const li = e.target.closest("li[data-jid]"); if (li) openChat(li.dataset.jid, true);
+});
+$("chats").addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-klap]")) { e.preventDefault(); s.afgerondOpen = !s.afgerondOpen; tekenLijst(); }
+});
+$("filters").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-filter]"); if (!b) return;
+  s.filter = b.dataset.filter;
+  for (const x of $("filters").children) x.classList.toggle("aan", x === b);
+  tekenLijst();
+  if (!RUSTIG.matches) { const c = $("chats"); c.classList.remove("wissel"); void c.offsetWidth; c.classList.add("wissel"); naAnimatie(c, 160).then(() => c.classList.remove("wissel")); }
+});
+$("zoekveld").addEventListener("input", (e) => { s.zoek = e.target.value.trim(); tekenLijst(); });
+
+// --- gesprek ----------------------------------------------------------------------------------------------------------
+function huidige() { return s.chats.get(s.open); }
+async function openChat(jid, push) {
+  if (s.open === jid && document.body.classList.contains("open")) return;
+  if (s.open) s.concepten[s.open] = $("tekst").value;
+  if (spraak) stopSpraak(false);
+  s.open = jid; s.berichten = []; s.cursor = null; s.meer = false; s.droog = []; s.kaarten = []; s.antwoordOp = null; s.koppel = null;
+  s.knopen.clear();
+  if (push) { history.pushState({ jid, geduwd: true }, "", "#" + encodeURIComponent(jid)); }
+  const wasOpen = document.body.classList.contains("open");
+  if (!wasOpen) lijstScroll = leesScroll();
+  const beurt = ++schuifBeurt;
+  document.body.classList.remove("schuift-uit");
+  document.body.classList.add("open");
+  s.animeer = false; s.gezienKaarten = new Set();
+  if (SMAL.matches && !wasOpen && !RUSTIG.matches) {
+    document.body.classList.add("schuift-in");
+    naAnimatie($("gesprek"), 340).then(() => { if (beurt === schuifBeurt) document.body.classList.remove("schuift-in"); });
+  } else if (!RUSTIG.matches) {
+    const g = $("gesprek"); g.classList.remove("wissel"); void g.offsetWidth; g.classList.add("wissel");
+    naAnimatie($("berichten"), 180).then(() => g.classList.remove("wissel"));
+  }
+  for (const li of $("chats").children) li.classList.toggle("gekozen", li.dataset.jid === jid);
+  $("tekst").value = s.concepten[jid] || ""; groei();
+  $("clipmenu").hidden = true;
+  tekenKop(); tekenStroken(); tekenSnel(); tekenStuurknop(); tekenBijlagen();
+  $("berichten").replaceChildren(el("div", { class: "meerlaad" }, "Laden…"));
+  try {
+    const d = await haal("/api/wa/berichten?" + new URLSearchParams({ chat: jid, n: 60 }));
+    if (s.open !== jid) return;
+    if (d.chat) { s.chats.set(jid, d.chat); }
+    s.berichten = d.berichten; s.cursor = d.cursor; s.meer = d.meer; s.droog = d.droog || []; s.kaarten = d.kladden || [];
+    s.kladden[jid] = s.kaarten;
+    tekenKop(); tekenSnel();
+    tekenBerichten(); naarOnder();
+    s.animeer = true;   // vanaf nu glijdt wat erbij komt erin; de eerste tekening niet
+  } catch (e) {
+    $("berichten").replaceChildren(el("div", { class: "leeg" }, "Dit gesprek laadt niet: " + e.message));
+  }
+}
+function sluitChat() {
+  if (spraak) stopSpraak(false);
+  if (s.open) s.concepten[s.open] = $("tekst").value;
+  const beurt = ++schuifBeurt;
+  const was = document.body.classList.contains("open");
+  if (was && SMAL.matches && !RUSTIG.matches) {
+    document.body.classList.remove("schuift-in");
+    document.body.classList.add("schuift-uit");   // de lijst staat er al onder terwijl het gesprek wegschuift
+    zetScroll(lijstScroll);
+    naAnimatie($("gesprek"), 260).then(() => {
+      if (beurt !== schuifBeurt) return;
+      document.body.classList.remove("open", "schuift-uit");
+      zetScroll(lijstScroll);
+    });
+  } else {
+    document.body.classList.remove("open", "schuift-in", "schuift-uit");
+    if (was && SMAL.matches) zetScroll(lijstScroll);
+  }
+  s.open = null;
+  for (const li of $("chats").children) li.classList.remove("gekozen");
+}
+$("terug").addEventListener("click", () => { if (history.state && history.state.geduwd) history.back(); else { history.replaceState(null, "", "/wa"); sluitChat(); } });
+window.addEventListener("popstate", () => { const j = decodeURIComponent(location.hash.slice(1)); if (j) openChat(j, false); else sluitChat(); });
+
+function tekenKop() {
+  const c = huidige(); if (!c) return;
+  $("grond").replaceWith(Object.assign(rondje(c, true), { id: "grond" }));
+  $("gnaam").textContent = c.naam;
+  const sub = [];
+  if (c.klant_naam) sub.push(c.klant_naam);
+  if (c.groep) sub.push("groep");
+  if (c.rol) sub.push(c.rol);
+  if (c.zelf) sub.push("de God-chat leest hier mee");
+  $("gsub").textContent = sub.join(" · ");
+  $("bezetregel").hidden = !c.bezet;
+  $("bezetregel").textContent = c.bezet ? "Hier werkt al: " + c.bezet : "";
+  $("wachtregel").hidden = !c.wacht;
+  $("wachttekst").textContent = c.wacht ? "Wacht " + wachtDuur(c.wacht.sinds) + " op je antwoord" : "";
+}
+$("wachtklaar").addEventListener("click", () => { if (s.open) vinkAf(s.open); });
+function opDeBodem() { const b = $("berichten"); return b.scrollHeight - b.scrollTop - b.clientHeight < 80; }
+function naarOnder(zacht) {
+  const b = $("berichten");
+  if (zacht && !RUSTIG.matches) b.scrollTo({ top: b.scrollHeight, behavior: "smooth" }); else b.scrollTop = b.scrollHeight;
+  $("nieuwknop").hidden = true; s.onder = true;
+}
+// een beeld dat later laadt duwt de inhoud omhoog: wie onderaan stond, blijft onderaan
+$("berichten").addEventListener("load", (e) => { if (e.target.tagName === "IMG" && s.onder) naarOnder(); }, true);
+$("nieuwknop").addEventListener("click", () => naarOnder(true));
+
+function sorteer() { s.berichten.sort((a, b) => (a.jd - b.jd) || (a.rowid - b.rowid)); }
+function tekenBerichten() {
+  const kinderen = [];
+  if (s.meer) kinderen.push(el("div", { class: "meerlaad", id: "meerlaad" }, s.laadt ? "Oudere berichten laden…" : "Scroll omhoog voor oudere berichten"));
+  else if (s.berichten.length) kinderen.push(el("div", { class: "meerlaad" }, "Begin van wat de bridge bewaard heeft"));
+  let vorigeDag = null, vorigeWie = null;
+  const alles = [...s.berichten, ...s.droog];
+  for (const b of alles) {
+    const dag = dagNaam(b.ts);
+    if (dag !== vorigeDag) { kinderen.push(el("div", { class: "dag" }, el("span", null, dag))); vorigeDag = dag; vorigeWie = null; }
+    const toonNaam = huidige()?.groep && !b.van_mij && b.wie && b.wie !== vorigeWie;
+    vorigeWie = b.van_mij ? "mij" : b.wie;
+    kinderen.push(berichtKnoop(b, toonNaam));
+  }
+  s.gezienKaarten = s.gezienKaarten || new Set();
+  for (const k of s.kaarten) {
+    const knoop = k.soort === "klad" ? kladKnoop(k) : kaartKnoop(k);
+    const sl = k.soort + ":" + k.nr;
+    if (s.animeer && !s.gezienKaarten.has(sl) && !RUSTIG.matches) knoop.classList.add("in-kaart");
+    s.gezienKaarten.add(sl);
+    kinderen.push(knoop);
+  }
+  if (!alles.length && !s.kaarten.length) kinderen.push(el("div", { class: "leeg" }, "Nog geen berichten."));
+  $("berichten").replaceChildren(...kinderen);
+}
+function berichtKnoop(b, toonNaam) {
+  const sleutel = b.id;
+  const handtekening = JSON.stringify([b, toonNaam, s.uitschrijven[b.id] || null, s.droogReacties[b.id] || null, !!s.droogBeelden[b.id]]);
+  const oud = s.knopen.get(sleutel);
+  if (oud && oud.h === handtekening) return oud.knoop;
+  const knoop = bouwBericht(b, toonNaam);
+  if (!oud && s.animeer && !RUSTIG.matches) {
+    const bal = knoop.classList.contains("ballon") ? knoop : knoop.querySelector(".ballon");
+    if (bal) { if (b.van_mij) bal.classList.add("mij"); bal.classList.add("in"); bal.addEventListener("animationend", () => bal.classList.remove("in"), { once: true }); }
+  }
+  s.knopen.set(sleutel, { h: handtekening, knoop });
+  return knoop;
+}
+function mediaUrl(b, vorm) { const p = { chat: s.open, id: b.id }; if (vorm) p.vorm = vorm; return "/api/wa/media?" + new URLSearchParams(p); }
+function bouwBericht(b, toonNaam) {
+  const ballon = el("div", { class: "ballon" + (b.verwijderd ? " weg" : "") + (b.droog ? " droog" : ""), "data-id": b.id });
+  if (toonNaam) ballon.append(el("div", { class: "afz", style: { color: kleurUit(b.wie) } }, b.wie));
+  if (b.droog) ballon.append(el("div", { class: "droogregel" }, "droogloop, niet verstuurd"));
+  if (b.antwoord_op) {
+    const q = b.antwoord_op;
+    ballon.append(q.ontbreekt
+      ? el("div", { class: "citaat", "data-naar": q.id }, el("span", null, "antwoord op een bericht dat hier niet staat"))
+      : el("div", { class: "citaat", "data-naar": q.id }, el("b", null, q.wie || "onbekend"), el("span", null, q.tekst || MEDIAWOORD[q.soort] || "")));
+  }
+  if (b.verwijderd) ballon.append(el("div", { class: "tx" }, "Dit bericht is verwijderd"));
+  else {
+    if (b.soort !== "tekst") ballon.append(mediaKnoop(b));
+    if (b.bijlagen && b.bijlagen.length) ballon.append(droogBijlagen(b));
+    if (b.tekst) { const tx = el("div", { class: "tx" }); opmaak(b.tekst, tx); ballon.append(tx); }
+  }
+  ballon.append(el("div", { class: "voet" }, el("span", null, uurVan(b.ts))));
+  if (!b.droog) ballon.append(el("button", { class: "zweef", "data-acties": b.id, "aria-label": "Acties", title: "Acties" }, "⋯"));
+  const wrap = el("div", { class: "br" + (b.van_mij ? " mij" : ""), "data-bid": b.id });
+  const kol = el("div", { style: { display: "flex", flexDirection: "column", alignItems: b.van_mij ? "flex-end" : "flex-start", maxWidth: "100%" } }, ballon);
+  const reacties = [...(b.reacties || [])];
+  const dr = s.droogReacties[b.id];
+  if (reacties.length || dr) {
+    kol.append(el("div", { class: "reacties" },
+      reacties.map((r) => el("span", { class: "chip" + (r.van_mij ? " mij" : "") }, r.emoji + (r.n > 1 ? " " + r.n : ""))),
+      dr ? el("span", { class: "chip droog", title: "droogloop, niet verstuurd" }, dr) : null));
+  }
+  wrap.append(kol);
+  return wrap;
+}
+function mediaKnoop(b) {
+  const f = el("div");
+  if (b.soort === "image") {
+    if (b.lokaal) f.append(el("img", { class: "foto", src: mediaUrl(b), loading: "lazy", alt: "Foto", "data-groot": b.id }));
+    else f.append(el("button", { class: "tegel", "data-laadfoto": b.id }, el("span", { class: "ic" }, "▢"), el("span", null, el("span", { class: "nm" }, "Foto"), el("small", null, "tik om te laden"))));
+  } else if (b.soort === "sticker") {
+    f.append(el("img", { class: "sticker", src: mediaUrl(b), loading: "lazy", alt: "Sticker" }));
+  } else if (b.soort === "video") {
+    f.append(el("button", { class: "tegel", "data-video": b.id }, el("span", { class: "ic" }, "▶"), el("span", null, el("span", { class: "nm" }, "Video"), el("small", null, (grootte(b.grootte) ? grootte(b.grootte) + " · " : "") + "tik om af te spelen"))));
+  } else if (b.soort === "audio") {
+    const a = el("audio", { controls: true, preload: "none" },
+      el("source", { src: mediaUrl(b), type: "audio/ogg" }),
+      el("source", { src: mediaUrl(b, "m4a"), type: "audio/mp4" }));
+    f.append(a);
+    const tekst = b.uitgeschreven || s.uitschrijven[b.id];
+    if (tekst && tekst !== "…") f.append(el("div", { class: "uitgeschreven" }, tekst));
+    else f.append(el("button", { class: "uitknop", "data-uitschrijven": b.id, disabled: tekst === "…" }, tekst === "…" ? "Schrijft uit… (even geduld)" : "Schrijf uit"));
+  } else if (b.soort === "document") {
+    f.append(el("a", { class: "tegel", href: mediaUrl(b), target: "_blank", rel: "noopener noreferrer" },
+      el("span", { class: "ic" }, "▤"), el("span", null, el("span", { class: "nm" }, b.bestand || "Document"), el("small", null, [grootte(b.grootte), "tik om te openen"].filter(Boolean).join(" · ")))));
+  } else {
+    f.append(el("div", { class: "tx" }, "[" + b.soort + "]"));
+  }
+  return f;
+}
+
+// de bijlagen van een droogloopbericht: het beeld dat de pagina nog in het geheugen heeft, anders naam en icoon
+function droogBijlagen(b) {
+  const geheugen = s.droogBeelden[b.id] || [];
+  return el("div", { class: "bijlagenrij" }, b.bijlagen.map((bj, i) => {
+    const m = geheugen[i];
+    if (bj.soort === "image" && m && m.url) return el("img", { class: "foto", src: m.url, alt: "Foto", "data-groot": "1" });
+    if (bj.soort === "audio") {
+      const tijd = bj.duur || (m && m.duur);
+      return el("div", { class: "tegel" },
+        m && m.url ? el("button", { class: "speel", type: "button", "data-speel": m.url, "aria-label": "Speel af" }, "▶") : el("span", { class: "ic" }, "♪"),
+        el("span", null, el("span", { class: "nm" }, "Spraakbericht" + (tijd ? " " + mss(tijd) : "")), el("small", null, "niet verstuurd")));
+    }
+    const ic = { image: "▢", video: "▶", audio: "♪" }[bj.soort] || "▤";
+    return el("div", { class: "tegel" }, el("span", { class: "ic" }, ic),
+      el("span", null, el("span", { class: "nm" }, (m && m.naam) || bj.naam), el("small", null, [grootte(bj.grootte), "niet verstuurd"].filter(Boolean).join(" · "))));
+  }));
+}
+
+// klikken in het gesprek
+$("berichten").addEventListener("click", async (e) => {
+  const t = e.target;
+  const naar = t.closest("[data-naar]");
+  if (naar) { const doel = $("berichten").querySelector(`.ballon[data-id="${CSS.escape(naar.dataset.naar)}"]`); if (doel) { doel.scrollIntoView({ block: "center", behavior: "smooth" }); doel.classList.add("flits"); setTimeout(() => doel.classList.remove("flits"), 1200); } return; }
+  const groot = t.closest("[data-groot]");
+  if (groot) return fotoGroot(groot.src);
+  const lf = t.closest("[data-laadfoto]");
+  if (lf) {
+    const b = s.berichten.find((x) => x.id === lf.dataset.laadfoto); if (!b) return;
+    lf.querySelector("small").textContent = "laden… (kan even duren)";
+    const img = el("img", { class: "foto", src: mediaUrl(b), alt: "Foto", "data-groot": b.id });
+    img.addEventListener("load", () => { b.lokaal = true; lf.replaceWith(img); });
+    img.addEventListener("error", () => { lf.querySelector("small").textContent = "niet gelukt (WhatsApp heeft hem misschien niet meer)"; });
+    return;
+  }
+  const vid = t.closest("[data-video]");
+  if (vid) {
+    const b = s.berichten.find((x) => x.id === vid.dataset.video); if (!b) return;
+    const v = el("video", { class: "speler", controls: true, autoplay: true, playsinline: true, src: mediaUrl(b) });
+    v.addEventListener("error", () => melding("De video laadt niet (WhatsApp heeft hem misschien niet meer).", true));
+    vid.replaceWith(v); return;
+  }
+  const sp = t.closest("[data-speel]");
+  if (sp) return speel(sp.dataset.speel, sp);
+  const ui = t.closest("[data-uitschrijven]");
+  if (ui) return schrijfUit(ui.dataset.uitschrijven);
+  const ac = t.closest("[data-acties]");
+  if (ac) return acties(ac.dataset.acties);
+});
+async function schrijfUit(id) {
+  const jid = s.open;
+  s.uitschrijven[id] = "…"; tekenBerichten();
+  try {
+    const d = await stuurPost("/api/wa/uitschrijven", { chat: jid, id });
+    s.uitschrijven[id] = d.tekst;
+  } catch (e) { delete s.uitschrijven[id]; melding("Uitschrijven lukte niet: " + e.message, true); }
+  if (s.open === jid) tekenBerichten();
+}
+function fotoGroot(src) {
+  let dicht = false;
+  const sluit = () => {
+    if (dicht) return; dicht = true;
+    if (RUSTIG.matches) return w.remove();
+    w.classList.add("dicht"); naAnimatie(w, 160).then(() => w.remove());
+  };
+  const w = el("div", { class: "fotogroot", onclick: sluit }, el("img", { src, alt: "Foto" }), el("button", { "aria-label": "Sluiten", onclick: sluit }, "✕"));
+  document.body.append(w);
+}
+
+// lang drukken (telefoon) en rechtsklik openen het blad met acties
+let drukTimer = null, drukStart = null;
+$("berichten").addEventListener("pointerdown", (e) => {
+  const b = e.target.closest(".br[data-bid]"); if (!b || e.pointerType === "mouse") return;
+  if (e.target.closest("a, button, audio, video")) return;
+  drukStart = [e.clientX, e.clientY];
+  drukTimer = setTimeout(() => { drukTimer = null; if (navigator.vibrate) navigator.vibrate(10); acties(b.dataset.bid); }, 480);
+});
+for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("berichten").addEventListener(ev, () => { clearTimeout(drukTimer); drukTimer = null; });
+$("berichten").addEventListener("pointermove", (e) => { if (drukTimer && drukStart && Math.hypot(e.clientX - drukStart[0], e.clientY - drukStart[1]) > 10) { clearTimeout(drukTimer); drukTimer = null; } });
+$("berichten").addEventListener("contextmenu", (e) => {
+  const b = e.target.closest(".br[data-bid]"); if (!b || e.target.closest("a, audio, video")) return;
+  e.preventDefault();
+  if (e.pointerType !== "touch" || !drukTimer) acties(b.dataset.bid);
+});
+
+// oudere berichten bij omhoog scrollen, zonder te verspringen
+$("berichten").addEventListener("scroll", async () => {
+  const box = $("berichten");
+  s.onder = opDeBodem();
+  if (s.onder) $("nieuwknop").hidden = true;
+  if (box.scrollTop > 300 || !s.meer || s.laadt || !s.cursor) return;
+  s.laadt = true;
+  const jid = s.open;
+  try {
+    const d = await haal("/api/wa/berichten?" + new URLSearchParams({ chat: jid, voor: s.cursor, n: 60 }));
+    if (s.open !== jid) return;
+    const voor = box.scrollHeight - box.scrollTop;
+    const ids = new Set(s.berichten.map((b) => b.id));
+    s.berichten = [...d.berichten.filter((b) => !ids.has(b.id)), ...s.berichten];
+    s.cursor = d.cursor; s.meer = d.meer;
+    s.laadt = false;
+    const anim = s.animeer; s.animeer = false;
+    tekenBerichten();
+    s.animeer = anim;
+    box.scrollTop = box.scrollHeight - voor;
+  } catch (e) { melding("Oudere berichten laden niet: " + e.message, true); }
+  s.laadt = false;
+});
+
+// --- klad en vraagkaart ----------------------------------------------------------------------------------------------
+function kladKnoop(k) {
+  const c = huidige();
+  const label = () => (s.echt ? "Stuur" : "Stuur · droog");
+  const stuur = el("button", { class: s.echt ? "hoofd" : "wachtkleur" }, label());
+  let klaar = null;
+  stuur.addEventListener("click", async () => {
+    if (!klaar) {   // eerste tik: alleen vragen
+      stuur.textContent = "Tik nogmaals om te versturen aan " + (c?.naam || "dit gesprek");
+      stuur.classList.add("bevestig");
+      klaar = setTimeout(() => { klaar = null; stuur.textContent = label(); stuur.classList.remove("bevestig"); }, 4000);
+      return;
+    }
+    clearTimeout(klaar); klaar = null;
+    stuur.disabled = true; stuur.textContent = "Bezig…";
+    await verstuur({ tekst: k.bericht, vraag: k.nr });
+    stuur.disabled = false; stuur.textContent = label(); stuur.classList.remove("bevestig");
+  });
+  const pasAan = el("button", null, "Pas aan");
+  pasAan.addEventListener("click", () => {
+    $("tekst").value = k.bericht; groei();
+    s.koppel = { nr: k.nr, chat: s.open, origineel: k.bericht, van: k.van_naam };
+    tekenStroken(); $("tekst").focus();
+  });
+  const detail = el("div", { class: "vraagdetail", hidden: true },
+    el("div", null, el("b", null, "Vraag: "), k.vraag),
+    k.context ? el("div", { class: "ctx" }, k.context) : null,
+    antwoordKnoppen(k));
+  const link = el("button", { class: "linkknop" }, "de vraag");
+  link.addEventListener("click", () => { detail.hidden = !detail.hidden; });
+  const tx = el("div", { class: "tx" }); opmaak(k.bericht, tx);
+  return el("div", { class: "kladrij" }, el("div", { class: "ballon" },
+    el("div", { class: "kop" }, el("span", null, "Klad van " + k.van_naam), el("span", { class: "sp" }), link),
+    tx, el("div", { class: "knoppen" }, pasAan, stuur), detail));
+}
+function antwoordKnoppen(k) {
+  const opties = k.antwoorden && k.antwoorden.length ? k.antwoorden : ["Ja", "Nee"];
+  return el("div", { class: "knoppen" }, opties.map((a) => {
+    const b = el("button", null, a);
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        const r = await fetch("/api/antwoord", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nr: k.nr, tekst: a }) });
+        if (!r.ok) throw new Error(await r.text());
+        melding(`Antwoord naar ${k.van_naam}: ${a}`);
+        s.kv = ""; pols();
+      } catch (e) { melding("Niet gelukt: " + e.message, true); b.disabled = false; }
+    });
+    return b;
+  }));
+}
+function kaartKnoop(k) {
+  const neem = el("button", null, "Neem over in het invoerveld");
+  neem.addEventListener("click", () => { $("tekst").value = k.concept; groei(); s.koppel = null; tekenStroken(); $("tekst").focus(); });
+  return el("div", { class: "kaart" },
+    el("div", { class: "meta" }, `Open vraag van ${k.van_naam} · ${k.uur}`),
+    el("h3", null, k.vraag),
+    k.context ? el("div", { class: "ctx" }, k.context) : null,
+    k.concept ? el("details", null, el("summary", null, "concept"), el("pre", null, k.concept)) : null,
+    antwoordKnoppen(k),
+    k.concept ? el("div", { class: "knoppen" }, neem) : null);
+}
+
+// --- acties op een bericht ---------------------------------------------------------------------------------------------
+function blad(titel, inhoud, uitleg) {
+  const achter = el("div", { class: "achter" });
+  const b = el("div", { class: "blad", role: "dialog", "aria-label": titel }, titel ? el("h3", null, titel) : null, uitleg ? el("p", { class: "uitleg" }, uitleg) : null, inhoud);
+  achter.append(b);
+  let dicht = false;
+  const sluit = () => {
+    if (dicht) return; dicht = true;
+    document.removeEventListener("keydown", esc);
+    if (RUSTIG.matches) return achter.remove();
+    achter.classList.add("dicht");
+    naAnimatie(achter, 180).then(() => achter.remove());
+  };
+  const esc = (e) => { if (e.key === "Escape") sluit(); };
+  achter.addEventListener("click", (e) => { if (e.target === achter) sluit(); });
+  document.addEventListener("keydown", esc);
+  document.body.append(achter);
+  return sluit;
+}
+function klantVan(c) { return c && c.klant ? { id: c.klant, naam: c.klant_naam || c.klant } : { id: "god", naam: "de God-chat" }; }
+function acties(id) {
+  const b = s.berichten.find((x) => x.id === id); if (!b) return;
+  const c = huidige(), k = klantVan(c);
+  const knop = (tekst, fn) => el("button", { class: "actie", onclick: () => { sluit(); fn(); } }, tekst);
+  const emojis = el("div", { class: "emojis" }, ["👍", "❤️", "😂", "🙏", "😮", "😢"].map((em) => el("button", { onclick: () => { sluit(); reageer(b, em); } }, em)));
+  const lijst = el("div", null,
+    b.beantwoordbaar ? emojis : null,
+    b.beantwoordbaar ? knop("Antwoord", () => {
+      if ((s.bijlagen[s.open] || []).length) return melding("Een bijlage kan niet als antwoord op een bericht: haal eerst de bijlagen weg.", true);
+      s.antwoordOp = { id: b.id, wie: b.wie, tekst: b.tekst || MEDIAWOORD[b.soort] || "" }; tekenStroken(); $("tekst").focus();
+    }) : null,
+    b.tekst ? knop("Kopieer", () => kopieer(b.tekst)) : null,
+    knop("Start taak", () => taakBlad(b)),
+    knop(k.id === "god" ? "Vraag de God-chat" : "Vraag " + k.naam, () => vraagBlad(b)));
+  const sluit = blad(null, lijst);
+}
+async function kopieer(t) {
+  try { await navigator.clipboard.writeText(t); melding("Gekopieerd."); }
+  catch (e) {
+    const ta = el("textarea", { style: { position: "fixed", opacity: "0" } }); ta.value = t; document.body.append(ta); ta.select();
+    try { document.execCommand("copy"); melding("Gekopieerd."); } catch (e2) { melding("Kopiëren lukte niet.", true); }
+    ta.remove();
+  }
+}
+async function reageer(b, emoji) {
+  try {
+    const r = await stuurPost("/api/wa/reageer", { chat: s.open, id: b.id, emoji });
+    if (r.droog) { s.droogReacties[b.id] = emoji; tekenBerichten(); melding("Droogloop: reactie niet verstuurd."); }
+    else melding("Reactie verstuurd.");
+  } catch (e) { melding(e.message, true); }
+}
+function micKnop(veld) {
+  const k = el("button", { class: "mic", title: "Dicteer", "aria-label": "Dicteer", type: "button" });
+  k.innerHTML = MIC_SVG;   // vast eigen icoon
+  k.addEventListener("click", () => dicteer(k, veld));
+  return k;
+}
+function naarApp(sleutel, naam) {
+  return el("a", { href: "/#gesprek", onclick: (e) => { e.preventDefault(); try { localStorage.setItem("gc-gekozen", sleutel); } catch (x) {} location.href = "/#gesprek"; } }, "Open " + (naam || "de chat"));
+}
+function eersteWoorden(t) { return String(t || "").replace(/\s+/g, " ").trim().split(" ").slice(0, 6).join(" ").slice(0, 50); }
+function taakBlad(b) {
+  const c = huidige(), standaard = c && c.klant && s.klanten.some((k) => k.id === c.klant) ? c.klant : "god";
+  const onder = el("select", null, s.klanten.map((k) => el("option", { value: k.id, selected: k.id === standaard }, k.naam)));
+  const naam = el("input", { type: "text", maxlength: 60, value: b ? eersteWoorden(b.tekst) || ("over " + (c?.naam || "")).slice(0, 50) : ("WhatsApp " + (c?.naam || "")).slice(0, 50) });
+  const wat = el("textarea", { placeholder: "Wat moet er gebeuren?" });
+  const start = el("button", { class: "hoofd" }, "Start taak");
+  const annuleer = el("button", null, "Annuleer");
+  const sluit = blad(b ? "Start taak bij dit bericht" : "Taak over dit gesprek",
+    el("div", null, el("label", null, "Onder"), onder, el("label", null, "Naam"), naam,
+      el("label", null, "Wat moet er gebeuren?"), el("div", { class: "metmic" }, wat, micKnop(wat)),
+      el("div", { class: "knoppen" }, annuleer, start)),
+    b ? "Het bericht zelf gaat als materiaal mee; de taakchat leest het gesprek erbij." : "De taakchat leest het gesprek zelf.");
+  annuleer.addEventListener("click", () => sluit());
+  start.addEventListener("click", async () => {
+    if (!wat.value.trim()) { wat.focus(); return; }
+    start.disabled = true;
+    try {
+      const r = await stuurPost("/api/wa/taak", { chat: s.open, id: b ? b.id : undefined, onder: onder.value, naam: naam.value, wat: wat.value });
+      sluit();
+      melding("Taak gestart: " + r.naam + ".", false, naarApp(r.chat, "de taak"));
+    } catch (e) { melding(e.message, true); start.disabled = false; }
+  });
+  setTimeout(() => wat.focus(), 50);
+}
+function vraagBlad(b) {
+  const c = huidige(), k = klantVan(c);
+  const wat = el("textarea", { placeholder: "Wat wil je weten of laten doen?" });
+  const stuur = el("button", { class: "hoofd" }, "Stuur naar " + k.naam);
+  const annuleer = el("button", null, "Annuleer");
+  const sluit = blad(k.id === "god" ? "Vraag de God-chat" : "Vraag " + k.naam,
+    el("div", null, el("div", { class: "metmic" }, wat, micKnop(wat)), el("div", { class: "knoppen" }, annuleer, stuur)),
+    b ? "Het bericht gaat mee als materiaal. Je woorden gaan naar de chat, niet naar WhatsApp." : "Je woorden gaan naar de chat, niet naar WhatsApp.");
+  annuleer.addEventListener("click", () => sluit());
+  stuur.addEventListener("click", async () => {
+    if (!wat.value.trim()) { wat.focus(); return; }
+    stuur.disabled = true;
+    try {
+      const r = await stuurPost("/api/wa/vraag", { chat: s.open, id: b ? b.id : undefined, aan: k.id, tekst: wat.value });
+      sluit();
+      melding("Gevraagd aan " + k.naam + ".", false, naarApp(r.chat, k.naam));
+    } catch (e) { melding(e.message, true); stuur.disabled = false; }
+  });
+  setTimeout(() => wat.focus(), 50);
+}
+function antwoordBlad() {
+  const c = huidige(), k = klantVan(c);
+  const wat = el("textarea", { placeholder: "Optioneel: wat moet erin? (bv. \"zeg dat het vrijdag kan\")", style: { minHeight: "80px" } });
+  const vraag = el("button", { class: "hoofd" }, "Vraag om een antwoord");
+  const annuleer = el("button", null, "Annuleer");
+  const sluit = blad("Schrijf een antwoord",
+    el("div", null, el("div", { class: "metmic" }, wat, micKnop(wat)), el("div", { class: "knoppen" }, annuleer, vraag)),
+    `${k.naam} leest het gesprek en zet een antwoord klaar. Het verschijnt hier als klad; jij verstuurt het.`);
+  annuleer.addEventListener("click", () => sluit());
+  vraag.addEventListener("click", async () => {
+    vraag.disabled = true;
+    try {
+      const r = await stuurPost("/api/wa/vraag", { chat: s.open, aan: k.id, soort: "antwoord", tekst: wat.value });
+      sluit();
+      melding(k.naam + " schrijft een antwoord; het komt hier als klad.", false, naarApp(r.chat, k.naam));
+    } catch (e) { melding(e.message, true); vraag.disabled = false; }
+  });
+}
+function tekenSnel() {
+  const c = huidige(), snel = $("snel");
+  snel.replaceChildren();
+  if (!c) return;
+  const k = klantVan(c);
+  if (c.klant) snel.append(el("button", { onclick: antwoordBlad }, "Schrijf een antwoord"));
+  snel.append(el("button", { onclick: () => vraagBlad(null) }, k.id === "god" ? "Vraag de God-chat" : "Vraag " + k.naam));
+  snel.append(el("button", { onclick: () => taakBlad(null) }, "+ Taak"));
+}
+$("gmeer").addEventListener("click", () => {
+  const c = huidige(); if (!c) return;
+  const k = klantVan(c);
+  const knop = (tekst, fn) => el("button", { class: "actie", onclick: () => { sluit(); fn(); } }, tekst);
+  const sluit = blad(c.naam, el("div", null,
+    c.klant ? knop("Schrijf een antwoord", antwoordBlad) : null,
+    knop(k.id === "god" ? "Vraag de God-chat" : "Vraag " + k.naam, () => vraagBlad(null)),
+    knop("+ Taak over dit gesprek", () => taakBlad(null)),
+    knop("Alles opnieuw laden", () => { const j = s.open; s.open = null; openChat(j, false); }),
+    knop("Instellingen", instellingen)));
+});
+
+// --- invoer en versturen -------------------------------------------------------------------------------------------------
+function groei() { const t = $("tekst"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight + 2, window.innerHeight * 0.4) + "px"; }
+$("tekst").addEventListener("input", () => {
+  groei();
+  if (!$("tekst").value && s.koppel) { s.koppel = null; tekenStroken(); }
+  s.concepten[s.open] = $("tekst").value;
+});
+$("tekst").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !AANRAAK && !e.isComposing) { e.preventDefault(); verstuur(); }
+});
+$("stuurknop").addEventListener("click", () => verstuur());
+$("antwoordweg").addEventListener("click", () => { s.antwoordOp = null; tekenStroken(); });
+$("koppelweg").addEventListener("click", () => { s.koppel = null; tekenStroken(); });
+function tekenStroken() {
+  const a = s.antwoordOp;
+  $("antwoordstrook").hidden = !a;
+  $("antwoordtekst").textContent = a ? `Antwoord op ${a.wie || "bericht"}: ${a.tekst}` : "";
+  const k = s.koppel && s.koppel.chat === s.open ? s.koppel : null;
+  $("koppelstrook").hidden = !k;
+  $("koppeltekst").textContent = k ? `Klad van ${k.van}, aangepast: versturen beantwoordt de vraag` : "";
+}
+function tekenStuurknop() {
+  const k = $("stuurknop");
+  k.classList.toggle("droog", !s.echt); k.classList.toggle("echt", s.echt);
+  k.textContent = s.bezig ? "Bezig…" : s.echt ? "Stuur" : "Stuur · droog";
+  k.title = s.echt ? "Verstuurt echt naar WhatsApp" : "Droogloop: niets gaat naar WhatsApp (Instellingen)";
+  k.disabled = s.bezig;
+  $("tekst").disabled = s.bezig; $("clip").disabled = s.bezig; $("mic").disabled = s.bezig;
+  $("droogmerk").hidden = s.echt;
+  $("nepmerk").hidden = !s.nep;
+}
+async function verstuur(klad) {
+  if (s.bezig || !s.open) return;
+  const jid = s.open;
+  const lijst = klad ? [] : [...(s.bijlagen[jid] || [])];   // een klad gaat altijd zonder de bijlagen van de strook
+  const tekst = klad ? klad.tekst : $("tekst").value.trim();
+  if (!tekst && !lijst.length) return;
+  const body = { chat: jid, tekst };
+  if (klad) body.vraag = klad.vraag;
+  else {
+    if (s.antwoordOp && !lijst.length) body.antwoord_op = s.antwoordOp.id;
+    if (s.koppel && s.koppel.chat === jid) { body.vraag = s.koppel.nr; body.aangepast = tekst !== s.koppel.origineel.trim(); }
+  }
+  s.bezig = true; tekenStuurknop(); tekenBijlagen();
+  try {
+    // eerst alles opladen en verwerken; mislukt er één, dan gaat er niets weg
+    for (const b of lijst) {
+      if (b.id) continue;
+      zetStaat(b, "opladen", 0);
+      try { const r = await laadOp(b); b.id = r.id; b.verstuurNaam = r.naam; if (r.duur) b.duur = r.duur; zetStaat(b, "klaar"); }
+      catch (e) { b.staat = "fout"; b.fout = e.message; throw new Error(`«${b.naam}»: ${e.message} Er is niets verstuurd.`); }
+    }
+    if (lijst.length) { body.bijlagen = lijst.map((b) => b.id); for (const b of lijst) zetStaat(b, "versturen"); }
+    const r = await stuurPost("/api/wa/stuur", body);
+    if (!klad) { $("tekst").value = ""; groei(); s.concepten[jid] = ""; s.antwoordOp = null; s.koppel = null; tekenStroken(); }
+    if (lijst.length) {
+      for (const b of lijst) if (b.audio) b.audio.pause();
+      if (r.droog && r.bericht) s.droogBeelden[r.bericht.id] = lijst.map((b) => ({ url: b.url, naam: b.naam, spraak: !!b.spraak, duur: b.duur }));
+      else for (const b of lijst) if (b.url) { URL.revokeObjectURL(b.url); spelers.delete(b.url); }
+      s.bijlagen[jid] = (s.bijlagen[jid] || []).filter((b) => !lijst.includes(b));
+    }
+    if (r.droog) { if (s.open === jid) { s.droog.push(...(r.berichten || [r.bericht])); tekenBerichten(); naarOnder(true); } melding("Droogloop: niets verstuurd."); }
+    else { melding("Verstuurd."); s.kv = ""; setTimeout(pols, 600); }
+  } catch (e) {
+    if (e.weg) {   // al weg of onzeker: uit de strook, zodat ze niet nog eens vertrekken
+      const weg = new Set(e.weg);
+      for (const b of lijst) if (weg.has(b.id) && b.url) URL.revokeObjectURL(b.url);
+      s.bijlagen[jid] = (s.bijlagen[jid] || []).filter((b) => !weg.has(b.id));
+    }
+    if (/bijlage niet gevonden/.test(e.message)) for (const b of lijst) b.id = null;   // verlopen: volgende keer opnieuw opladen
+    for (const b of lijst) if (b.staat !== "fout") b.staat = "klaar";
+    melding(e.message, true);
+  }
+  s.bezig = false; tekenStuurknop();
+  if (s.open === jid) tekenBijlagen();
+}
+
+// --- bijlagen ----------------------------------------------------------------------------------------------------------
+function soortVan(f) {
+  const t = f.type || "";
+  if (t.startsWith("image/") || /\.(jpe?g|png|gif|webp|heic|heif|tiff?|bmp)$/i.test(f.name)) return "image";
+  if (t.startsWith("video/") || /\.(mp4|mov|m4v|avi)$/i.test(f.name)) return "video";
+  if (/\.ogg$/i.test(f.name)) return "audio";
+  return "document";
+}
+function voegToe(bestanden) {
+  if (!s.open || s.bezig) return;
+  const jid = s.open, lijst = s.bijlagen[jid] || (s.bijlagen[jid] = []);
+  let erbij = 0;
+  for (const f of bestanden) {
+    if (lijst.length >= MAX_BIJLAGEN) { melding(`Hoogstens ${MAX_BIJLAGEN} bijlagen per bericht.`, true); break; }
+    if (f.size > MAX_BIJLAGE) { melding(`«${f.name}» is te groot: hoogstens 100 MB per bestand.`, true); continue; }
+    if (!f.size) { melding(`«${f.name}» is leeg.`, true); continue; }
+    const soort = soortVan(f);
+    lijst.push({ file: f, naam: f.name || "bestand", grootte: f.size, soort, staat: "klaar", pct: 0, id: null, fout: null,
+      url: soort === "image" && (f.type || "").startsWith("image/") ? URL.createObjectURL(f) : null });
+    erbij++;
+  }
+  if (erbij && s.antwoordOp) { s.antwoordOp = null; tekenStroken(); melding("Een bijlage kan niet als antwoord op een bericht."); }
+  tekenBijlagen();
+}
+function haalWeg(b) {
+  const jid = s.open;
+  s.bijlagen[jid] = (s.bijlagen[jid] || []).filter((x) => x !== b);
+  if (b.audio) b.audio.pause();
+  if (b.url) { URL.revokeObjectURL(b.url); spelers.delete(b.url); }
+  if (b.id) stuurPost("/api/wa/bijlage-weg", { id: b.id }).catch(() => {});   // wachtte al op de server: opruimen
+  tekenBijlagen();
+}
+function statusTekst(b) {
+  if (b.staat === "opladen") return `opladen ${b.pct || 0}%`;
+  if (b.staat === "verwerken") return b.spraak ? "omzetten…" : "verwerken…";
+  if (b.staat === "versturen") return "versturen…";
+  if (b.staat === "fout") return b.fout || "mislukt";
+  return b.spraak ? mss(b.duur) : grootte(b.grootte);
+}
+function zetStaat(b, staat, pct) {   // alleen de statusregel bijwerken: de strook niet opnieuw bouwen bij elke stap
+  b.staat = staat; if (pct != null) b.pct = pct;
+  if (b.st) { b.st.textContent = statusTekst(b); b.kaart.classList.toggle("bezig", ["opladen", "verwerken", "versturen"].includes(staat)); b.kaart.classList.toggle("fout", staat === "fout"); }
+}
+function tekenBijlagen() {
+  const box = $("bijlagen"), lijst = s.open ? (s.bijlagen[s.open] || []) : [];
+  box.hidden = !lijst.length;
+  box.replaceChildren(...lijst.map((b) => {
+    if (b.spraak) return spraakBlokje(b);
+    let beeld;
+    if (b.url) {
+      beeld = el("img", { class: "beeld", src: b.url, alt: "" });
+      beeld.addEventListener("error", () => beeld.replaceWith(el("div", { class: "beeld" }, "▢")));   // bv. heic in Chrome
+    } else beeld = el("div", { class: "beeld" }, { video: "▶", image: "▢", audio: "♪" }[b.soort] || "▤");
+    const weg = el("button", { class: "weg", "aria-label": "Haal " + b.naam + " weg", title: "Weghalen", disabled: s.bezig }, "✕");
+    weg.addEventListener("click", () => haalWeg(b));
+    b.st = el("small", { class: "st" }, statusTekst(b));
+    b.kaart = el("div", { class: "bijl" + (b.staat === "fout" ? " fout" : "") + (["opladen", "verwerken", "versturen"].includes(b.staat) ? " bezig" : ""), title: b.naam },
+      beeld, el("div", { class: "nm" }, b.naam), b.st, weg);
+    return b.kaart;
+  }));
+}
+function laadOp(b) {   // XMLHttpRequest, zodat het percentage te zien is; de tik-sleutel gaat mee zoals bij elke POST
+  return new Promise((ok, nee) => {
+    const x = new XMLHttpRequest();
+    x.open("POST", "/api/wa/bijlage?" + new URLSearchParams(b.spraak ? { spraak: "1", naam: b.naam } : { naam: b.naam }));
+    x.setRequestHeader("X-WA-Tik", TIK);
+    x.setRequestHeader("content-type", "application/octet-stream");
+    x.upload.addEventListener("progress", (e) => { if (e.lengthComputable) zetStaat(b, "opladen", Math.round((e.loaded / e.total) * 100)); });
+    x.upload.addEventListener("load", () => zetStaat(b, "verwerken"));
+    x.addEventListener("load", () => {
+      if (x.status === 200) { try { return ok(JSON.parse(x.responseText)); } catch (e) { return nee(new Error("onleesbaar antwoord van de app.")); } }
+      if (x.status === 403 && x.responseText.includes("tik-sleutel")) {
+        bewaarConcepten(); melding("De app is herstart; de pagina laadt opnieuw.", true); setTimeout(() => location.reload(), 900);
+      }
+      nee(new Error((x.responseText || "opladen mislukt (" + x.status + ")").trim()));
+    });
+    x.addEventListener("error", () => nee(new Error("de verbinding viel weg tijdens het opladen.")));
+    x.addEventListener("abort", () => nee(new Error("opladen afgebroken.")));
+    x.send(b.file);
+  });
+}
+$("clip").addEventListener("click", (e) => { e.stopPropagation(); $("clipmenu").hidden = !$("clipmenu").hidden; });
+$("clipmenu").addEventListener("click", (e) => {
+  if (e.target.closest("[data-spraak]")) { $("clipmenu").hidden = true; return startSpraak(); }
+  const k = e.target.closest("[data-kies]"); if (!k) return;
+  $("clipmenu").hidden = true;
+  const inp = $(k.dataset.kies); inp.value = ""; inp.click();
+});
+for (const id of ["kiesfoto", "kiesbestand"]) $(id).addEventListener("change", (e) => { voegToe([...e.target.files]); e.target.value = ""; });
+document.addEventListener("click", (e) => { if (!$("clipmenu").hidden && !e.target.closest("#clipmenu, #clip")) $("clipmenu").hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("clipmenu").hidden = true; });
+// plakken (een afbeelding op het klembord) en slepen op het gesprek
+document.addEventListener("paste", (e) => {
+  const fs = [...((e.clipboardData && e.clipboardData.files) || [])];
+  if (!fs.length || !s.open || document.querySelector(".achter")) return;
+  e.preventDefault(); voegToe(fs);
+});
+const metBestanden = (e) => [...((e.dataTransfer && e.dataTransfer.types) || [])].includes("Files");
+let sleepDiepte = 0;
+$("gesprek").addEventListener("dragenter", (e) => { if (!metBestanden(e) || !s.open) return; e.preventDefault(); sleepDiepte++; $("sleeplaag").hidden = false; });
+$("gesprek").addEventListener("dragover", (e) => { if (!metBestanden(e) || !s.open) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; });
+$("gesprek").addEventListener("dragleave", (e) => { if (!metBestanden(e)) return; sleepDiepte = Math.max(0, sleepDiepte - 1); if (!sleepDiepte) $("sleeplaag").hidden = true; });
+$("gesprek").addEventListener("drop", (e) => {
+  if (!metBestanden(e)) return;
+  e.preventDefault(); sleepDiepte = 0; $("sleeplaag").hidden = true;
+  if (s.open) voegToe([...e.dataTransfer.files]);
+});
+// een bestand dat naast het gesprek valt, opent de browser niet (dan zou de pagina weg zijn)
+window.addEventListener("dragover", (e) => { if (metBestanden(e)) e.preventDefault(); });
+window.addEventListener("drop", (e) => { if (metBestanden(e)) e.preventDefault(); });
+
+// dicteren: opnemen in de browser, uitschrijven op de Mac (/api/dicteer van de app)
+// de stand van het dicteren, zichtbaar boven het veld: neemt op (met looptijd), schrijft uit (met seconden)
+function dicteerStand(knop, veld) {
+  const rij = knop.closest(".rij, .invoer, .metmic") || veld.parentElement;
+  let el = null, klok = null, t0 = 0;
+  const tijd = () => { const s = Math.round((Date.now() - t0) / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const zet = (soort, html) => {
+    if (!el) { el = document.createElement("div"); el.setAttribute("role", "status"); rij.parentElement.insertBefore(el, rij); }
+    el.className = "dicteerstand " + soort; el.innerHTML = html;
+  };
+  const loop = (f) => { clearInterval(klok); t0 = Date.now(); f(); klok = setInterval(f, 500); };
+  return {
+    neemt: () => loop(() => zet("neemt", `<span class="stip"></span>Neemt op · ${tijd()} · tik op de microfoon om te stoppen`)),
+    schrijft: () => { clearInterval(klok); veld.setAttribute("aria-busy", "true"); if (el) el.remove(); el = null; },   // het rondje op de microfoon volstaat
+    klaar: () => { clearInterval(klok); veld.removeAttribute("aria-busy"); if (el) el.remove(); el = null; },
+  };
+}
+let opname = null;
+async function dicteer(knop, veld) {
+  if (knop.classList.contains("schrijft") || spraak) return;
+  if (opname) { opname.stop(); return; }
+  let stroom;
+  try { stroom = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { melding("Geen toegang tot de microfoon (" + e.name + ").", true); return; }
+  const soort = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
+  const rec = new MediaRecorder(stroom, soort ? { mimeType: soort } : {});
+  const stukken = [];
+  const st = dicteerStand(knop, veld);
+  rec.ondataavailable = (e) => { if (e.data.size) stukken.push(e.data); };
+  rec.onstop = async () => {
+    stroom.getTracks().forEach((t) => t.stop());
+    opname = null;
+    knop.classList.remove("neemt"); knop.classList.add("schrijft");
+    st.schrijft();
+    try {
+      const blob = new Blob(stukken, { type: (rec.mimeType || "audio/webm").split(";")[0] });
+      const r = await fetch("/api/dicteer", { method: "POST", headers: { "content-type": blob.type }, body: blob });
+      if (!r.ok) throw new Error(await r.text());
+      const { tekst } = await r.json();
+      if (tekst) {
+        const a = veld.selectionStart ?? veld.value.length, b = veld.selectionEnd ?? veld.value.length;
+        const voor = veld.value.slice(0, a), na = veld.value.slice(b), tussen = voor && !/\s$/.test(voor) ? " " : "";
+        veld.value = voor + tussen + tekst + na;
+        veld.dispatchEvent(new Event("input"));
+      }
+    } catch (e) { melding("Dicteren niet gelukt: " + e.message, true); }
+    st.klaar();
+    knop.classList.remove("schrijft");
+  };
+  rec.start(); opname = rec; st.neemt(); knop.classList.add("neemt");
+}
+// lang drukken op de microfoon (±500 ms) neemt een spraakbericht op; een gewone tik blijft dicteren
+let micLang = false, micTimer = null;
+$("mic").addEventListener("pointerdown", (e) => {
+  if (e.button > 0) return;
+  micLang = false; clearTimeout(micTimer);
+  micTimer = setTimeout(() => { micTimer = null; micLang = true; if (navigator.vibrate) navigator.vibrate(10); startSpraak(); }, 500);
+});
+for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("mic").addEventListener(ev, () => { clearTimeout(micTimer); micTimer = null; });
+$("mic").addEventListener("contextmenu", (e) => e.preventDefault());
+$("mic").addEventListener("click", () => { if (micLang) { micLang = false; return; } dicteer($("mic"), $("tekst")); });
+
+// --- spraakbericht opnemen -----------------------------------------------------------------------------------------
+// Opnemen in de browser; de opname staat daarna als blokje in de strook en gaat pas weg met de gewone verstuurknop.
+// De app zet ze om naar Ogg Opus (POST /api/wa/bijlage?spraak=1), de bridge verstuurt een .ogg als spraakbericht.
+const MAX_OPNAME = 15 * 60;   // seconden: dan stopt de opname vanzelf (de server weigert boven MAX_SPRAAK = 900)
+const MIC_WEG = "De microfoon is niet beschikbaar. Geef de browser toegang, of open de app in Safari of Chrome.";
+let spraak = null;   // de lopende opname: { jid, stroom, rec, stukken, start, ctx, raf, klok, weg }
+const spelers = new Map();   // url van een opname → Audio
+function mss(sec) { const t = Math.max(0, Math.round(sec || 0)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); }
+function toonOpnamebalk(aan) {
+  document.querySelector(".invoer").hidden = aan;
+  $("opnamebalk").hidden = !aan;
+  if (aan) { $("opnametijd").textContent = "0:00"; $("opnamemeter").style.transform = "scaleX(0)"; }
+}
+async function startSpraak() {
+  if (!s.open || s.bezig || spraak) return;
+  if ((s.bijlagen[s.open] || []).length >= MAX_BIJLAGEN) { melding(`Hoogstens ${MAX_BIJLAGEN} bijlagen per bericht.`, true); return; }
+  if (opname) opname.stop();   // het dicteren stopt eerst: er neemt nooit meer dan één ding op
+  const jid = s.open;
+  spraak = { jid, stroom: null, rec: null, stukken: [], start: 0, ctx: null, raf: 0, klok: 0, weg: false, wacht: true };
+  toonOpnamebalk(true);
+  let stroom;
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) throw new Error("geen microfoon");
+    stroom = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    spraak = null; toonOpnamebalk(false); melding(MIC_WEG, true); return;
+  }
+  if (!spraak || spraak.weg || s.open !== jid) { stroom.getTracks().forEach((t) => t.stop()); if (spraak) { spraak = null; toonOpnamebalk(false); } return; }
+  const soort = ["audio/webm;codecs=opus", "audio/mp4"].find((t) => MediaRecorder.isTypeSupported(t)) || "";
+  let rec;
+  try { rec = new MediaRecorder(stroom, soort ? { mimeType: soort } : {}); }
+  catch (e) { stroom.getTracks().forEach((t) => t.stop()); spraak = null; toonOpnamebalk(false); melding(MIC_WEG, true); return; }
+  const o = spraak;
+  Object.assign(o, { stroom, rec, start: performance.now(), wacht: false });
+  rec.ondataavailable = (e) => { if (e.data && e.data.size) o.stukken.push(e.data); };
+  rec.onstop = () => opnameKlaar(o);
+  // eenvoudige uitslag van het volume, zodat te zien is dat er geluid binnenkomt
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    o.ctx = new AC();
+    const an = o.ctx.createAnalyser(); an.fftSize = 512;
+    o.ctx.createMediaStreamSource(stroom).connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const tik = () => {
+      an.getByteTimeDomainData(buf);
+      let som = 0; for (const v of buf) som += (v - 128) * (v - 128);
+      const rms = Math.sqrt(som / buf.length) / 128;
+      $("opnamemeter").style.transform = `scaleX(${Math.min(1, rms * 4).toFixed(3)})`;
+      o.raf = requestAnimationFrame(tik);
+    };
+    tik();
+  } catch (e) { o.ctx = null; }
+  o.klok = setInterval(() => {
+    const sec = (performance.now() - o.start) / 1000;
+    $("opnametijd").textContent = mss(Math.floor(sec));
+    if (sec >= MAX_OPNAME) { stopSpraak(true); melding("De opname stopte vanzelf na 15 minuten."); }
+  }, 250);
+  rec.start(1000);
+}
+function sluitMicrofoon(o) {
+  clearInterval(o.klok); cancelAnimationFrame(o.raf);
+  if (o.stroom) o.stroom.getTracks().forEach((t) => t.stop());   // het lampje van de microfoon gaat uit
+  if (o.ctx) o.ctx.close().catch(() => {});
+}
+function stopSpraak(bewaar) {   // Klaar (bewaar) of Annuleer
+  const o = spraak; if (!o) return;
+  o.weg = !bewaar;
+  o.duur = o.start ? (performance.now() - o.start) / 1000 : 0;
+  spraak = null;
+  toonOpnamebalk(false);
+  if (o.wacht) { o.weg = true; return; }   // de microfoon was nog niet open: startSpraak ruimt zelf op
+  clearInterval(o.klok); cancelAnimationFrame(o.raf);
+  if (o.rec && o.rec.state !== "inactive") o.rec.stop(); else opnameKlaar(o);
+}
+function opnameKlaar(o) {
+  if (o.klaar) return; o.klaar = true;
+  sluitMicrofoon(o);
+  if (o.weg) return;
+  const type = ((o.rec && o.rec.mimeType) || "audio/webm").split(";")[0];
+  const blob = new Blob(o.stukken, { type });
+  if (o.duur < 0.7 || !blob.size) { melding("De opname is te kort.", true); return; }
+  if (blob.size > MAX_BIJLAGE) { melding("De opname is te groot om mee te sturen.", true); return; }
+  const lijst = s.bijlagen[o.jid] || (s.bijlagen[o.jid] = []);
+  if (lijst.length >= MAX_BIJLAGEN) { melding(`Hoogstens ${MAX_BIJLAGEN} bijlagen per bericht.`, true); return; }
+  lijst.push({ file: blob, naam: "spraakbericht" + (type === "audio/mp4" ? ".m4a" : ".webm"), grootte: blob.size, soort: "audio",
+    spraak: true, duur: Math.round(o.duur * 10) / 10, staat: "klaar", pct: 0, id: null, fout: null, url: URL.createObjectURL(blob) });
+  if (s.open === o.jid && s.antwoordOp) { s.antwoordOp = null; tekenStroken(); melding("Een bijlage kan niet als antwoord op een bericht."); }
+  if (s.open === o.jid) tekenBijlagen();
+}
+function speler(url) {
+  let a = spelers.get(url);
+  if (!a) { a = new Audio(url); a.preload = "auto"; spelers.set(url, a); }
+  return a;
+}
+function speel(url, knop) {   // ▶ / pauze op een opname uit het geheugen
+  const a = speler(url);
+  for (const [u, x] of spelers) if (u !== url && !x.paused) x.pause();
+  const zet = () => { knop.textContent = a.paused ? "▶" : "❚❚"; knop.setAttribute("aria-label", a.paused ? "Speel af" : "Pauzeer"); };
+  a.onplay = zet; a.onpause = zet; a.onended = () => { a.currentTime = 0; zet(); };
+  a.onerror = () => { zet(); melding("De opname speelt niet af in deze browser.", true); };
+  if (a.paused) a.play().catch((e) => { zet(); if (e.name !== "AbortError") melding("De opname speelt niet af in deze browser.", true); });
+  else a.pause();
+}
+function spraakBlokje(b) {
+  b.audio = speler(b.url);
+  const knop = el("button", { class: "speel", type: "button", "aria-label": b.audio.paused ? "Speel af" : "Pauzeer", disabled: s.bezig }, b.audio.paused ? "▶" : "❚❚");
+  knop.addEventListener("click", () => speel(b.url, knop));
+  const weg = el("button", { class: "weg", "aria-label": "Haal het spraakbericht weg", title: "Weghalen", disabled: s.bezig }, "✕");
+  weg.addEventListener("click", () => haalWeg(b));
+  b.st = el("small", { class: "st" }, statusTekst(b));
+  b.kaart = el("div", { class: "bijl spraak" + (b.staat === "fout" ? " fout" : "") + (["opladen", "verwerken", "versturen"].includes(b.staat) ? " bezig" : ""), title: "Spraakbericht" },
+    knop, el("div", { class: "tx2" }, el("div", { class: "nm" }, "Spraakbericht"), b.st), weg);
+  return b.kaart;
+}
+$("opnameklaar").addEventListener("click", () => stopSpraak(true));
+$("opnameweg").addEventListener("click", () => stopSpraak(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && spraak) stopSpraak(false); });
+
+// --- instellingen ------------------------------------------------------------------------------------------------------------
+function bridgeTekst() {
+  const b = s.bridge || {};
+  if (b.nummer === false) return "Deze WhatsApp is van een ander nummer dan het jouwe: versturen staat uit.";
+  if ("nummer" in b && b.nummer == null) return "Niet na te gaan van welk nummer deze WhatsApp is: versturen staat uit.";
+  if (b.proef) return "Proef-store: de tab praat niet met de echte bridge.";
+  if (b.ok === false) return "De bridge is niet bereikbaar.";
+  if (b.verbonden === false) return "De bridge draait, maar is niet verbonden met WhatsApp.";
+  if (b.verbonden) return "De bridge is verbonden met WhatsApp.";
+  return "Toestand van de bridge nog onbekend.";
+}
+$("tandwiel").addEventListener("click", () => instellingen());
+function instellingen() {
+  const schakel = el("input", { type: "checkbox", checked: s.versturen === "echt" });
+  const test = el("button", null, "Testregel naar je eigen chat");
+  const sluit = blad("Instellingen", el("div", null,
+    el("label", { class: "schakel" }, schakel, el("span", null, "Echt versturen")),
+    el("p", { class: "stilregel" }, s.nep ? "Dit is het nepscherm: het verstuurt nooit, ook niet met deze schakelaar aan."
+      : s.echt ? "Aan: wat je hier verstuurt gaat echt naar WhatsApp, op jouw naam."
+      : s.versturen === "echt" ? "Aan, maar er gaat nu niets weg (zie hieronder)." : "Uit: elk bericht is een droogloop en blijft hier, met een stippelrand."),
+    el("p", { class: "stilregel" }, bridgeTekst()),
+    el("div", { class: "knoppen" }, test)));
+  schakel.addEventListener("change", async () => {
+    const aan = schakel.checked;
+    if (aan && !confirm("Echt versturen aanzetten?\n\nDan gaat elk bericht dat je in deze tab verstuurt, en elke klad waarop je twee keer Stuur tikt, echt naar WhatsApp, op jouw naam, naar klanten en vrienden." + (s.nep ? "\n\n(Dit is het nepscherm: het verstuurt nooit.)" : ""))) { schakel.checked = false; return; }
+    try {
+      const r = await stuurPost("/api/wa/instelling", { versturen: aan ? "echt" : "droog" });
+      s.versturen = r.versturen; s.echt = !!r.echt; tekenStuurknop();
+      melding(r.melding || (s.echt ? "Echt versturen staat aan." : "Versturen staat op droogloop."));
+      sluit();
+    } catch (e) { melding(e.message, true); schakel.checked = !aan; }
+  });
+  test.addEventListener("click", async () => {
+    if (!s.zelf) return melding("Geen eigen chat bekend in routing.json.", true);
+    test.disabled = true;
+    try {
+      const r = await stuurPost("/api/wa/stuur", { chat: s.zelf, tekst: "[God] test vanuit de WhatsApp-tab" });
+      melding(r.droog ? "Droogloop: testregel niet verstuurd." : "Testregel verstuurd naar je eigen chat.");
+      if (r.droog && s.open === s.zelf) { s.droog.push(r.bericht); tekenBerichten(); naarOnder(); }
+      sluit();
+    } catch (e) { melding(e.message, true); test.disabled = false; }
+  });
+}
+
+// --- verversen -----------------------------------------------------------------------------------------------------------------
+function zetAlgemeen(d) {
+  if ("versturen" in d) s.versturen = d.versturen;
+  if ("echt" in d) s.echt = !!d.echt;
+  if (d.bridge) s.bridge = d.bridge;
+  const b = s.bridge || {};
+  const nummerMis = b.nummer === false || ("nummer" in b && b.nummer == null);   // de store is niet (aantoonbaar) van het eigen nummer
+  const los = !b.proef && (b.ok === false || b.verbonden === false);
+  $("bridgebalk").hidden = !(nummerMis || los);
+  $("bridgebalk").textContent = nummerMis ? bridgeTekst() : "De WhatsApp-bridge is niet verbonden: berichten komen niet binnen en versturen lukt niet.";
+  tekenStuurknop();
+}
+async function laadLijst() {
+  const d = await haal("/api/wa/chats");
+  s.chats.clear();
+  s.max = d.max; s.nep = d.nep; s.proef = d.proef; s.zelf = d.zelf; s.klanten = d.klanten; s.kv = d.kv; s.kladden = d.kladden || {};
+  s.wachtN = d.wacht_n || 0;
+  zetChats(d.chats); zetAlgemeen(d); tekenLijst();
+}
+let polsBezig = false, laatsteVol = Date.now();
+async function pols() {
+  if (polsBezig || document.hidden) return;
+  polsBezig = true;
+  try {
+    const d = await haal("/api/wa/pols?" + new URLSearchParams({ na: s.max, chat: s.open || "", kv: s.kv }));
+    zetAlgemeen(d);
+    if (d.herlaad) { await laadLijst(); if (s.open) { const j = s.open; s.open = null; openChat(j, false); } return; }
+    s.max = d.max;
+    if ("wacht_n" in d) s.wachtN = d.wacht_n;
+    let lijstAnders = false;
+    if (d.chats && d.chats.length) { zetChats(d.chats); lijstAnders = true; if (s.open && d.chats.some((c) => c.jid === s.open)) tekenKop(); }
+    if (d.kv) {
+      s.kv = d.kv; s.kladden = d.kladden || {};
+      for (const [jid, c] of s.chats) { const t = (d.tellers || {})[jid] || [0, 0]; if (c.klad !== t[0] || c.vraag !== t[1]) { c.klad = t[0]; c.vraag = t[1]; lijstAnders = true; } }
+      if (s.open) { s.kaarten = s.kladden[s.open] || []; tekenBerichten(); }
+    }
+    if (lijstAnders) tekenLijst();
+    if (s.open && d.berichten && d.berichten.length) {
+      const onder = opDeBodem();
+      let nieuw = false;
+      for (const b of d.berichten) {
+        const i = s.berichten.findIndex((x) => x.id === b.id);
+        if (i >= 0) s.berichten[i] = b; else { s.berichten.push(b); nieuw = true; }
+      }
+      sorteer(); tekenBerichten();
+      if (onder) naarOnder(true); else if (nieuw) $("nieuwknop").hidden = false;
+    }
+    if (s.open && Date.now() - laatsteVol > 30000) { laatsteVol = Date.now(); volOpnieuw(); }
+  } catch (e) { /* volgende keer opnieuw */ }
+  finally { polsBezig = false; }
+}
+async function volOpnieuw() {   // het zichtbare stuk opnieuw: bewerkingen, verwijderingen, nieuwe reacties
+  const jid = s.open; if (!jid) return;
+  try {
+    const n = Math.min(Math.max(s.berichten.length, 30), 200);
+    const d = await haal("/api/wa/berichten?" + new URLSearchParams({ chat: jid, n }));
+    if (s.open !== jid) return;
+    if (d.chat) { zetChats([d.chat]); tekenKop(); }
+    const nieuw = new Map(d.berichten.map((b) => [b.id, b]));
+    s.berichten = s.berichten.map((b) => nieuw.get(b.id) || b);
+    const ids = new Set(s.berichten.map((b) => b.id));
+    for (const b of d.berichten) if (!ids.has(b.id)) s.berichten.push(b);
+    sorteer();
+    s.kaarten = d.kladden || []; s.droog = d.droog || s.droog;
+    const onder = opDeBodem();
+    tekenBerichten(); if (onder) naarOnder(true);
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pols(); });
+
+// het invoerveld boven het schermtoetsenbord houden
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const pas = () => {
+    document.documentElement.style.setProperty("--vvh", vv.height + "px");
+    if (document.body.classList.contains("open") && innerWidth < 960) $("gesprek").style.top = vv.offsetTop + "px";
+    else $("gesprek").style.top = "";
+  };
+  vv.addEventListener("resize", pas); vv.addEventListener("scroll", pas); pas();
+}
+
+(async function begin() {
+  try { s.concepten = JSON.parse(sessionStorage.getItem("wa-concepten") || "{}") || {}; sessionStorage.removeItem("wa-concepten"); } catch (e) {}
+  try { await laadLijst(); }
+  catch (e) { $("lijstleeg").hidden = false; $("lijstleeg").textContent = "De lijst laadt niet: " + e.message; }
+  const j = decodeURIComponent(location.hash.slice(1));
+  if (j && s.chats.has(j)) { history.replaceState({ jid: j }, "", "#" + encodeURIComponent(j)); openChat(j, false); }
+  setInterval(pols, 3000);
+  setInterval(() => { if (document.hidden) return; if (s.filter === "wacht") tekenLijst(); if (s.open) tekenKop(); }, 60000);   // "wacht 12 min" loopt mee
+})();
+</script>
+</body>
+</html>

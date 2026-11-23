@@ -1,0 +1,26 @@
+{
+ "_": "Geplande taken van de GodChat-app (de klok: app/klok.py). Kopieer naar rooster.json; zonder rooster.json zijn er geen taken. Per taak: id (kleine letters, cijfers, '-'), naam, onder (een projectsleutel uit routing.json, of god), dagen (1 = ma … 7 = zo), uren ([\"UU:MM\"], in de tijdzone GODCHAT_TZ, standaard Europe/Brussels), inhalen_min (hoeveel minuten na het uur een gemiste ronde nog mag starten, hoogstens tot het volgende uur), aan (true of false). Een ronde heeft daarnaast: opdracht (rooster/<id>.md, letterlijk), model, effort, max_duur_min, koppelingen (de lokale MCP-servers die ze nodig heeft) en eventueel desktop_id (dezelfde taak in de Claude-desktop-app: zolang ze daar aan staat, weigert de klok). Een taak van soort motor (actie ochtend of nieuwe_dag) start geen ronde maar roept de motor aan. Nieuwe rondes maakt een chat met plan_taak; aanzetten doe je met de schakelaar onder het project.",
+ "taken": [
+  {
+   "id": "ochtend",
+   "naam": "Ochtend: grote chats samenvatten",
+   "onder": "god",
+   "soort": "motor",
+   "actie": "ochtend",
+   "dagen": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "uren": [
+    "06:00"
+   ],
+   "inhalen_min": 180,
+   "aan": true
+  }
+ ]
+}

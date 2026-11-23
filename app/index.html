@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GodChat</title>
+<link rel="manifest" href="/s/manifest.webmanifest" crossorigin="use-credentials">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#201f1d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/s/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/s/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root {
+  --bg: #f6f5f1; --vlak: #ffffff; --lijn: #e4e1d8; --inkt: #22211e; --zacht: #6f6b62; --flauw: #a29e94;
+  --accent: #3f6b52; --accent-zacht: #e3ece5; --werkt: #3d6fb4; --wacht: #b7791f; --wacht-zacht: #fbf1df;
+  --fout: #b4443d; --code: #f1efe9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171716; --vlak: #201f1d; --lijn: #34322e; --inkt: #ecebe6; --zacht: #a7a399; --flauw: #77736b;
+    --accent: #8cc0a0; --accent-zacht: #23302a; --werkt: #7ea6e0; --wacht: #e0a94f; --wacht-zacht: #2e2618;
+    --fout: #e07a73; --code: #2a2926;
+  }
+}
+* { box-sizing: border-box; }
+html { height: 100%; }
+body { margin: 0; min-height: 100%; }   /* geen vaste hoogte: anders laat de kop los op een lange pagina */
+body { background: var(--bg); color: var(--inkt); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+button, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--lijn); background: var(--vlak); border-radius: 8px; padding: 6px 12px; }
+button.hoofd { background: var(--accent); border-color: var(--accent); color: var(--vlak); }
+button:disabled { opacity: .5; cursor: default; }
+pre { white-space: pre-wrap; word-break: break-word; margin: 0; font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--lijn); background: var(--vlak); position: sticky; top: 0; z-index: 5; }
+header h1 { font-size: 16px; margin: 0 auto 0 0; letter-spacing: .2px; }
+header .ladeknop { display: none; }
+header .stand { color: var(--zacht); font-size: 13px; display: none; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nep { background: var(--wacht-zacht); color: var(--wacht); font-size: 12px; border-radius: 6px; padding: 2px 8px; }
+
+nav.tabs { display: flex; gap: 4px; padding: 8px 16px 0; background: var(--bg); position: sticky; top: 49px; z-index: 4; }
+nav.tabs button { flex: 1; font-size: 14px; padding: 7px 4px; white-space: nowrap; border-radius: 8px 8px 0 0; border-bottom: none; background: transparent; color: var(--zacht); }
+nav.tabs button.aan { background: var(--vlak); color: var(--inkt); font-weight: 600; }
+/* de WhatsApp-tab is een eigen pagina (/wa, wa.html): een link, geen paneel */
+nav.tabs a { flex: 1; text-align: center; font-size: 14px; padding: 7px 4px; white-space: nowrap; border: 1px solid var(--lijn); border-bottom: none; border-radius: 8px 8px 0 0; color: var(--zacht); text-decoration: none; }
+header a.ladeknop { border: 1px solid var(--lijn); background: var(--vlak); border-radius: 8px; padding: 6px 12px; color: inherit; text-decoration: none; }
+nav.tabs a[hidden], header a.ladeknop[hidden] { display: none; }   /* verborgen tot /wa antwoordt (zie onderaan het script) */
+
+main { display: block; }
+.paneel { display: none; background: var(--vlak); min-height: calc(100vh - 92px); }
+.paneel.aan { display: block; }
+.kop { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--flauw); padding: 14px 16px 6px; margin: 0; font-weight: 600; }
+
+/* boom */
+.boom ul { list-style: none; margin: 0; padding: 0 8px 16px; }
+.boom li { padding: 10px 10px; border-radius: 10px; cursor: pointer; display: grid; grid-template-columns: 14px 1fr; column-gap: 8px; }
+.boom li:hover { background: var(--bg); }
+.boom li.gekozen { background: var(--accent-zacht); }
+.boom li.kind { margin-left: 18px; position: relative; }
+.boom li.kind::before { content: ""; position: absolute; left: -10px; top: 0; bottom: 50%; width: 8px; border-left: 1px solid var(--lijn); border-bottom: 1px solid var(--lijn); border-bottom-left-radius: 6px; }
+.stip { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: var(--flauw); }
+.stip.werkt { background: var(--werkt); animation: puls 1.4s ease-in-out infinite; }
+.stip.wacht { background: var(--wacht); }
+.stip.fout { background: var(--fout); }
+.boom li.kind.taak { margin-left: 38px; padding: 6px 10px; }
+.boom li.kind.taak.ondergod { margin-left: 18px; }
+.boom li.taak .naam { font-weight: 500; font-size: 14px; }
+.boom li.taak.klaar { opacity: .5; }
+.boom li.afgesloten { display: block; color: var(--flauw); font-size: 13px; padding: 8px 10px; margin-top: 6px; }
+.boom li.afgesloten:hover { color: var(--zacht); }
+.boom li.taak.klaar.los { margin-left: 18px; }
+.stip.klaar { background: transparent; border: 1.5px solid var(--accent); }
+dialog { border: 1px solid var(--lijn); border-radius: 14px; background: var(--vlak); color: var(--inkt); padding: 18px; width: min(520px, 92vw); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog h3 { margin: 0 0 4px; font-size: 16px; }
+dialog p { margin: 0 0 12px; font-size: 13px; color: var(--zacht); }
+dialog input, dialog textarea { width: 100%; font: inherit; color: inherit; border: 1px solid var(--lijn); border-radius: 8px; padding: 8px 10px; background: var(--bg); margin-bottom: 8px; }
+dialog textarea { min-height: 120px; resize: vertical; }
+dialog .knoppen { display: flex; gap: 8px; justify-content: flex-end; }
+.stip.desktop { background: transparent; border: 1.5px solid var(--flauw); }
+@keyframes puls { 50% { opacity: .35; } }
+.naam { font-weight: 600; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.toestand { font-size: 12px; font-weight: 500; color: var(--zacht); }
+.toestand.wacht { color: var(--wacht); } .toestand.fout { color: var(--fout); } .toestand.werkt { color: var(--werkt); }
+.regel { grid-column: 2; font-size: 13px; color: var(--zacht); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.regel .uur { color: var(--flauw); margin-right: 4px; }
+.boom .acties { padding: 4px 16px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+.boomvoet { margin: 0; padding: 0 18px 20px; font-size: 12.5px; }
+.boomvoet form { display: inline; margin: 0; }
+.boomvoet a, .boomvoet button { font: inherit; color: var(--zacht); background: none; border: none; padding: 10px 0; cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--lijn); text-underline-offset: 3px; }
+
+/* wacht op jou */
+.vraag { margin: 8px 12px 14px; border: 1px solid var(--lijn); border-left: 3px solid var(--wacht); border-radius: 10px; padding: 12px; background: var(--vlak); }
+.vraag .meta { font-size: 12px; color: var(--zacht); display: flex; gap: 8px; align-items: center; }
+.vraag .nr { background: var(--wacht-zacht); color: var(--wacht); font-weight: 700; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+.vraag h3 { font-size: 17px; line-height: 1.35; margin: 8px 0 6px; font-weight: 600; }
+.vraag h3.lang { font-size: 15px; }   /* een vraag van de oude, lange soort */
+.vraag .jaregel { font-size: 14px; margin: 0 0 4px; }
+.vraag .ctx { font-size: 13px; color: var(--zacht); }
+.vraag .ctx[data-ctx] { cursor: pointer; }
+.vraag .ctx.kort { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vraag .concept { background: var(--code); border-radius: 8px; padding: 10px; margin: 8px 0; }
+.vraag .meta > * { white-space: nowrap; }
+.vraag .meta b { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.vraag .meta .sinds { color: var(--wacht); }
+.vraag .meta .sp { flex: 1; }
+.vraag .link { border: none; background: none; padding: 4px 0 4px 8px; color: var(--accent); font-size: 12.5px; white-space: nowrap; }
+.vraag .concept.dicht { max-height: 86px; overflow: hidden; cursor: pointer; -webkit-mask-image: linear-gradient(#000 45%, transparent); mask-image: linear-gradient(#000 45%, transparent); }
+.vraag .meer { border: none; background: none; padding: 0 0 6px; color: var(--accent); font-size: 12.5px; }
+.vraag .antw { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: flex-end; }
+.vraag .antw [data-snel] { flex: 1 1 auto; min-height: 44px; font-weight: 600; padding: 8px 14px; line-height: 1.25; white-space: normal; text-align: center; }
+.vraag .antw [data-typ] { flex: 1 1 100%; text-align: left; padding: 2px 0 0; }
+.vraag .antw .zeg { flex: 1 1 100%; display: flex; gap: 8px; align-items: flex-end; }
+.vraag .antw textarea { flex: 1; min-height: 44px; max-height: 160px; border: 1px solid var(--lijn); border-radius: 10px; padding: 10px; background: var(--bg); resize: none; }
+.vraag .antw [data-eigen] { width: 44px; height: 44px; padding: 0; flex: none; font-size: 18px; }
+.vraag.klaar { border-left-color: var(--lijn); opacity: .8; }
+/* het kleine kaartje op het dashboard: wie, een paar woorden, het aangeraden antwoord; een tik opent de hele kaart */
+.vraag.klein { padding: 0; cursor: pointer; }
+.kk-kop { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 3px; width: 100%; text-align: left; border: none; background: none; border-radius: 10px; padding: 11px 12px 2px; }
+.kk-wie { display: flex; gap: 8px; align-items: baseline; min-width: 0; font-size: 12px; color: var(--zacht); }
+.kk-wie b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kk-wie .sinds { color: var(--wacht); white-space: nowrap; }
+.kk-titel { grid-column: 1; font-size: 16px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.kk-pijl { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--flauw); font-size: 22px; line-height: 1; }
+.kk-snel { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; padding: 8px 12px 11px; }
+.kk-snel [data-snel] { min-height: 40px; max-width: 100%; font-size: 15px; font-weight: 600; padding: 7px 14px; line-height: 1.25; text-align: left; }
+.kk-snel .link { min-height: 40px; padding: 0; font-size: 13px; }
+.vraag .kk-dicht { padding: 6px 2px 6px 10px; font-size: 11px; }
+/* meldingen: de balk op het dashboard (één keer vragen, en de testknop vlak na het aanzetten) */
+.pushbalk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--lijn); border-radius: 10px; background: var(--vlak); font-size: 14px; }
+.pushbalk[hidden] { display: none; }   /* zonder meldingen (geen omgeving, of het nepscherm) geen lege balk */
+.pushbalk .sp { flex: 1; }
+.pushbalk button { min-height: 38px; }
+.pushbalk .uitslag, .pushvoet .uitslag { flex: 1 1 100%; display: block; font-size: 12.5px; color: var(--zacht); }
+.pushvoet { color: var(--flauw); padding-top: 0; }
+.beurt .vraag { margin: 10px 0 6px; }
+@media (min-width: 600px) {
+  .vraag .antw [data-snel] { flex: 0 1 auto; min-width: 72px; }
+  .vraag .antw .zeg { flex: 1 1 260px; }
+}
+
+/* dashboard */
+.dash { background: var(--bg); }
+.dash .binnen { max-width: 860px; margin: 0 auto; padding: 0 12px 40px; }
+.dash .blok { min-width: 0; }
+.dash .kop { padding: 22px 4px 8px; }
+.dash .vraag { margin: 0 0 12px; }
+.hero { padding: 20px 4px 14px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.hero .getal { font-size: 52px; font-weight: 600; line-height: 1; color: var(--wacht); }
+.hero .titel { font-size: 20px; font-weight: 600; }
+.hero .rust { font-size: 22px; font-weight: 600; }
+.hero .onder { flex: 1 1 100%; font-size: 13.5px; color: var(--zacht); }
+.hero .onder b { color: var(--inkt); font-weight: 600; }
+.tegels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tegel { background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.tegel .lbl { font-size: 12.5px; color: var(--zacht); }
+.tegel .w { font-size: 28px; font-weight: 600; line-height: 1.2; }
+.tegel .sub { font-size: 12px; color: var(--flauw); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tegel .sub.let { color: var(--fout); }
+.grafieken { display: grid; gap: 8px; margin-top: 8px; }
+.grafiek { background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; padding: 12px 14px 12px; min-width: 0; }
+.grafiek h4 { margin: 0 0 2px; font-size: 13.5px; font-weight: 600; }
+.grafiek .uitleg { font-size: 12px; color: var(--flauw); margin-bottom: 10px; }
+.uren { display: flex; align-items: flex-end; gap: 2px; height: 84px; border-bottom: 1px solid var(--lijn); }
+.uren .kolom { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; outline: none; }
+.uren .staaf { width: 100%; max-width: 16px; background: var(--accent); border-radius: 4px 4px 0 0; }
+.uren .kolom:hover .staaf, .uren .kolom:focus .staaf { filter: brightness(1.2); }
+.uren .top { font-size: 11px; color: var(--zacht); line-height: 1.3; }
+.uren .kolom:hover::after, .uren .kolom:focus::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 3;
+  background: var(--inkt); color: var(--bg); font-size: 12px; padding: 3px 8px; border-radius: 6px; pointer-events: none; }
+.uren .kolom:nth-child(-n+5)::after { left: 0; transform: none; }
+.uren .kolom:nth-last-child(-n+5)::after { left: auto; right: 0; transform: none; }
+.urenas { display: flex; justify-content: space-between; font-size: 11px; color: var(--flauw); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.perchat { display: grid; grid-template-columns: minmax(0, auto) minmax(40px, 1fr) auto; gap: 7px 10px; align-items: center; font-size: 13.5px; }
+.perchat .n { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.perchat .n:hover { color: var(--accent); }
+.perchat .baan { height: 8px; }
+.perchat .baan i { display: block; height: 100%; min-width: 2px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.perchat .g { font-variant-numeric: tabular-nums; color: var(--zacht); text-align: right; }
+.invoer { z-index: 3; }
+.laatst { list-style: none; margin: 0; padding: 0; background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; overflow: hidden; }
+.laatst li { display: grid; grid-template-columns: 44px 1fr; gap: 6px; padding: 9px 14px; cursor: pointer; font-size: 13.5px; border-top: 1px solid var(--lijn); }
+.laatst li:first-child { border-top: none; }
+.laatst li:hover { background: var(--bg); }
+.laatst .t { color: var(--flauw); font-size: 12.5px; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.laatst .s { color: var(--zacht); }
+.badge { background: var(--wacht-zacht); color: var(--wacht); font-weight: 700; border-radius: 9px; padding: 0 7px; font-size: 12px; margin-left: 4px; }
+.boom li.thuis { display: none; }
+header h1 { cursor: pointer; }
+@media (min-width: 600px) {
+  .tegels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grafieken { grid-template-columns: 1fr 1fr; }
+}
+.leeg { color: var(--flauw); padding: 8px 16px 16px; font-size: 14px; }
+
+/* verloop */
+.verloop ol { list-style: none; margin: 0; padding: 0 8px 24px; }
+.verloop li { padding: 8px 8px; border-radius: 8px; cursor: pointer; display: grid; grid-template-columns: 44px 1fr; gap: 6px; }
+.verloop li:hover { background: var(--bg); }
+.verloop .t { color: var(--flauw); font-size: 12.5px; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.verloop .wat { font-size: 13.5px; }
+.verloop .route { font-weight: 600; }
+.verloop .label { font-size: 11px; border-radius: 5px; padding: 0 6px; margin-right: 6px; background: var(--code); color: var(--zacht); }
+.label.binnen { background: var(--accent-zacht); color: var(--accent); }
+.label.door { background: #e4ebf6; color: var(--werkt); }
+.label.vraag, .label.antwoord { background: var(--wacht-zacht); color: var(--wacht); }
+.label.fout { background: #f6e3e1; color: var(--fout); }
+@media (prefers-color-scheme: dark) { .label.door { background: #1f2a3a; } .label.fout { background: #3a2220; } }
+.verloop .samen { color: var(--zacht); }
+.verloop .exact { grid-column: 1 / -1; display: none; background: var(--code); border-radius: 8px; padding: 10px; margin-top: 4px; }
+.verloop li.open .exact { display: block; }
+.verloop .filter { padding: 0 16px 6px; font-size: 13px; color: var(--zacht); }
+.verloop .filter label { cursor: pointer; }
+
+/* gesprek */
+.gesprek { flex-direction: column; }
+.gesprek.aan { display: flex; }
+.gesprek .bovenaan { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--lijn); }
+.gesprek .bovenaan h2 { font-size: 16px; margin: 0; flex: 1; }
+.terug { display: inline-block; }
+.beurten { flex: 1; padding: 8px 16px 24px; overflow-y: auto; }
+.beurten > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+.beurt { margin: 18px auto; }
+.beurt .wie { font-size: 11.5px; color: var(--flauw); margin-bottom: 4px; }
+.beurt.user { display: flex; flex-direction: column; align-items: flex-end; }
+.beurt.user .tekst { background: var(--code); border-radius: 14px; padding: 9px 13px; max-width: 85%; white-space: pre-wrap; }
+.beurt.user.systeem { align-items: stretch; }
+.beurt.user.wachtend .tekst { background: transparent; border: 1px dashed var(--lijn); color: var(--zacht); }
+.beurt.user.wachtend .wie { margin: 4px 2px 0; }
+details.systeem { font-size: 12.5px; color: var(--flauw); }
+details.systeem summary { cursor: pointer; list-style: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details.systeem summary::before { content: "▸ "; } details.systeem[open] summary::before { content: "▾ "; }
+details.systeem pre { background: var(--code); border-radius: 8px; padding: 8px 10px; margin-top: 6px; color: var(--zacht); }
+.md { word-break: break-word; line-height: 1.55; }
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 10px; }
+.md ul, .md ol { margin: 0 0 10px; padding-left: 22px; } .md li { margin: 2px 0; }
+.md h1, .md h2, .md h3, .md h4 { font-size: 15px; margin: 14px 0 6px; }
+.md code { background: var(--code); border-radius: 4px; padding: 1px 5px; font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.md pre { background: var(--code); border-radius: 8px; padding: 10px 12px; margin: 0 0 10px; overflow-x: auto; }
+.md pre code { background: none; padding: 0; }
+.md a { color: var(--accent); }
+.md table { border-collapse: collapse; margin: 0 0 10px; font-size: 13.5px; }
+.md th, .md td { border: 1px solid var(--lijn); padding: 4px 8px; text-align: left; }
+.md hr { border: none; border-top: 1px solid var(--lijn); margin: 12px 0; }
+details.tools { margin: 6px 0; font-size: 12.5px; color: var(--flauw); }
+details.tools summary { cursor: pointer; list-style: none; }
+details.tools summary::before { content: "▸ "; } details.tools[open] summary::before { content: "▾ "; }
+details.tools .tool { margin: 6px 0 6px 14px; }
+details.tools .tool pre { background: var(--code); border-radius: 6px; padding: 6px 8px; margin-top: 3px; max-height: 260px; overflow: auto; }
+.einde { font-size: 11.5px; color: var(--flauw); margin: -10px auto 14px; }
+.einde.fout { color: var(--fout); }
+
+.invoer { border-top: 1px solid var(--lijn); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--vlak); position: sticky; bottom: 0; }
+.invoer > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+.invoer .hint { font-size: 11px; color: var(--flauw); margin-top: 4px; }
+.invoer .aan { font-size: 12.5px; color: var(--zacht); margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+.invoer select { border: 1px solid var(--lijn); border-radius: 6px; background: var(--bg); padding: 2px 6px; min-width: 0; flex: 0 1 auto; text-overflow: ellipsis; }
+.invoer .rij { display: flex; gap: 8px; align-items: flex-end; }
+.invoer textarea { flex: 1; min-height: 42px; max-height: 200px; border: 1px solid var(--lijn); border-radius: 10px; padding: 9px 10px; background: var(--bg); resize: none; }
+.invoer .aan .sp { flex: 1; }
+.mic { width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.mic svg { width: 18px; height: 18px; }
+.mic.neemt { background: var(--fout); border-color: var(--fout); color: #fff; animation: puls 1.4s ease-in-out infinite; }
+.mic.schrijft { opacity: .6; cursor: progress; }
+.desktopnotitie { margin: 12px 16px; padding: 10px 12px; border: 1px dashed var(--lijn); border-radius: 10px; color: var(--zacht); font-size: 14px; }
+
+/* breed scherm: drie kolommen */
+@media (min-width: 600px) { header .stand { display: block; } }
+@media (min-width: 960px) {
+  nav.tabs { display: none; }
+  body { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  header { height: 56px; flex: none; }
+  main { display: grid; grid-template-columns: 260px minmax(0, 1fr); flex: 1; min-height: 0; }
+  .paneel { min-height: 0; overflow-y: auto; }
+  .boom, .rechts { display: block !important; }
+  .boom { border-right: 1px solid var(--lijn); background: var(--bg); }
+  .boom li.thuis { display: grid; margin-bottom: 6px; }
+  .dash { background: var(--vlak); }
+  .dash .tegel, .dash .grafiek, .dash .laatst { background: var(--bg); border-color: transparent; }
+  .dash .laatst li { border-top-color: var(--vlak); }
+  .dash .laatst li:hover { background: var(--accent-zacht); }
+  .dash .binnen { padding: 8px 24px 48px; }
+  .boom li:hover { background: var(--vlak); }
+  .rechts { position: fixed; top: 56px; right: 0; bottom: 0; width: 400px; max-width: 90vw; z-index: 6;
+    border-left: 1px solid var(--lijn); background: var(--bg); box-shadow: -12px 0 32px rgba(0,0,0,.12);
+    transform: translateX(105%); transition: transform var(--traag) var(--uit); }
+  .rechts.lade { transform: none; }
+  header .ladeknop { display: inline-block; }
+  header .ladeknop.wacht { background: var(--wacht-zacht); border-color: var(--wacht); color: var(--wacht); font-weight: 600; }
+  .rechts .vraag { background: var(--vlak); }
+  .verloop li:hover { background: var(--vlak); }
+  .gesprek.aan { height: 100%; overflow: hidden; }
+  .terug { display: none; }
+}
+@media (min-width: 1280px) {   /* breed: vragen links, cijfers ernaast */
+  .dash .binnen { max-width: 1240px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-rows: auto 1fr; column-gap: 28px; align-items: start; }
+  .dash .blok.a { grid-column: 1; grid-row: 1; }
+  .dash .blok.b { grid-column: 2; grid-row: 1 / span 2; }
+  .dash .blok.c { grid-column: 1; grid-row: 2; }
+  .dash .blok.b > .kop:first-child, .dash .blok.b > div:first-child:not([hidden]) > .kop { padding-top: 30px; }
+  .dash .blok.b .tegels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dash .blok.b .grafieken { grid-template-columns: 1fr; }
+}
+@media (min-width: 1280px) and (min-height: 880px) { .dash .blok.b { position: sticky; top: 0; } }
+/* zachte overgang tussen het dashboard en de WhatsApp-tab (/wa doet hetzelfde) */
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+
+/* --- beweging: zelfde duur en curves als de WhatsApp-tab; alleen transform en opacity --------------------------- */
+:root { --snel: 160ms; --gewoon: 260ms; --traag: 340ms; --uit: cubic-bezier(.2, .8, .2, 1); --in: cubic-bezier(.4, 0, 1, 1); }
+@keyframes gc-op { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes gc-vanrechts { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes gc-vanlinks { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes gc-vaag { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gc-pop { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes gc-mijn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes gc-denkt { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+/* een paneel dat verschijnt: een tab schuift in vanuit zijn kant, een gesprek van rechts, terug van links */
+main[data-richting="rechts"] > .paneel.aan, main[data-richting="vooruit"] > .paneel.aan { animation: gc-vanrechts var(--traag) var(--uit) both; }
+main[data-richting="links"] > .paneel.aan, main[data-richting="terug"] > .paneel.aan { animation: gc-vanlinks var(--traag) var(--uit) both; }
+@media (min-width: 960px) {   /* de chatlijst staat er altijd: alleen het middenvlak beweegt, en zachter */
+  main[data-richting] > .boom.aan { animation: none; }
+  main[data-richting] > .paneel.aan { animation-name: gc-vaag; animation-duration: var(--gewoon); }
+}
+/* knoppen geven mee onder je vinger */
+button, .boom li { -webkit-tap-highlight-color: transparent; }
+button { transition: transform var(--snel) var(--uit), opacity var(--snel) var(--uit); }
+button:active:not(:disabled) { transform: scale(.96); }
+.kk-kop:active:not(:disabled), nav.tabs button:active { transform: none; }
+.vraag.klein:active { transform: scale(.99); }
+.vraag.klein { transition: transform var(--snel) var(--uit); }
+/* vraagkaarten: een nieuwe schuift omhoog in, een opengeklapte bouwt zich op, een beantwoorde schuift weg */
+.vraag.nieuw { animation: gc-op var(--gewoon) var(--uit) both; }
+.vraag.klapt > :not(.meta) { animation: gc-op var(--gewoon) var(--uit) both; }
+.vraag.klapt > :nth-child(3) { animation-delay: 30ms; } .vraag.klapt > :nth-child(4) { animation-delay: 60ms; }
+.vraag.klapt > :nth-child(n+5) { animation-delay: 90ms; }
+.vraag.klein.klapt { animation: gc-vaag var(--gewoon) var(--uit) both; }
+.vraag.klein.klapt > * { animation: none; }
+.kk-titel.vers { animation: gc-vaag var(--gewoon) var(--uit) both; }
+.vraag.weg { transition: transform var(--gewoon) var(--in), opacity var(--gewoon) var(--in); transform: translateX(32px); opacity: 0; pointer-events: none; }
+/* het gesprek: wat nieuw binnenkomt schuift zacht omhoog; je eigen bericht komt van rechtsonder */
+.beurt.nieuw, .einde.nieuw { animation: gc-op var(--gewoon) var(--uit) both; }
+.beurt.user.eigenaar.nieuw { animation-name: gc-mijn; transform-origin: right bottom; }
+.einde.denkt { animation: gc-denkt 1.4s ease-in-out infinite; }
+details.tools[open] > :not(summary), details.systeem[open] > :not(summary) { animation: gc-op var(--snel) var(--uit) both; }
+/* verloop, meldingenbalk */
+.verloop li.nieuw, .boom li.nieuw { animation: gc-op var(--gewoon) var(--uit) both; }
+.verloop li.open .exact { animation: gc-vaag var(--snel) var(--uit) both; }
+.pushbalk:not([hidden]) { animation: gc-op var(--gewoon) var(--uit) both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* gesprek openen en sluiten op de telefoon: volle push zoals in de WhatsApp-tab (alleen tijdens zo'n overgang) */
+html[data-vt] header { view-transition-name: gc-kop; }
+html[data-vt] nav.tabs { view-transition-name: gc-tabs; }
+html[data-vt]::view-transition-old(root), html[data-vt]::view-transition-new(root) { animation-duration: var(--traag); animation-timing-function: var(--uit); animation-fill-mode: both; mix-blend-mode: normal; }
+html[data-vt="vooruit"]::view-transition-new(root) { animation-name: gc-vt-inrechts; box-shadow: -10px 0 28px rgba(0,0,0,.14); }
+html[data-vt="vooruit"]::view-transition-old(root) { animation-name: gc-vt-uitlinks; }
+html[data-vt="terug"]::view-transition-old(root) { animation-name: gc-vt-uitrechts; z-index: 1; box-shadow: -10px 0 28px rgba(0,0,0,.14); }
+html[data-vt="terug"]::view-transition-new(root) { animation-name: gc-vt-inlinks; }
+@keyframes gc-vt-inrechts { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes gc-vt-uitlinks { from { transform: none; } to { transform: translateX(-22%); } }
+@keyframes gc-vt-uitrechts { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes gc-vt-inlinks { from { transform: translateX(-22%); } to { transform: none; } }
+
+/* dicteren: een regel boven het veld zolang je opneemt of het uitschrijven loopt */
+.dicteerstand { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--zacht); padding: 2px 4px 6px; font-variant-numeric: tabular-nums; animation: gc-dicteer var(--snel, 160ms) var(--uit, ease-out) both; }
+.dicteerstand.neemt { color: var(--fout); font-weight: 600; }
+.dicteerstand .stip { width: 10px; height: 10px; border-radius: 50%; background: var(--fout); flex: none; animation: puls 1.4s ease-in-out infinite; }
+.dicteerstand .draai, .mic.schrijft::after { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--lijn); border-top-color: var(--accent); flex: none; animation: gc-draai .8s linear infinite; }
+.mic { position: relative; }
+.mic.schrijft { opacity: 1; cursor: progress; }
+.mic.schrijft svg { opacity: .25; }
+.mic.schrijft::after { content: ""; position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; box-sizing: border-box; }
+@keyframes gc-draai { to { transform: rotate(360deg); } }
+@keyframes gc-dicteer { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .dicteerstand .draai, .mic.schrijft::after { animation-duration: 2.4s; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="thuis" title="Naar het dashboard">GodChat</h1>
+  <span class="stand" id="stand">…</span>
+  <span class="nep" id="nep" hidden>nepgegevens</span>
+  <button class="ladeknop" id="knopWacht" title="Wacht op jou">Wacht op jou</button>
+  <button class="ladeknop" id="knopVerloop" title="Verloop">Verloop</button>
+  <a class="ladeknop" id="knopWa" href="/wa" title="Je WhatsApp, met knoppen naar de chats" hidden>WhatsApp</a>
+  <button id="nieuweDag" title="Start verse sessies voor alle chats in de app">Nieuwe dag</button>
+</header>
+<nav class="tabs">
+  <button data-tab="dash" class="aan" id="tabDash">Dashboard</button>
+  <button data-tab="boom">Chats</button>
+  <button data-tab="verloopTab">Verloop</button>
+  <a href="/wa" id="tabWa" hidden>WhatsApp</a>
+</nav>
+<main id="main">
+  <section class="paneel boom" id="boom">
+    <p class="kop">Chats</p>
+    <ul id="boomLijst"></ul>
+    <p class="boomvoet" id="boomVoet" hidden></p>
+    <p class="boomvoet pushvoet" id="pushVoet" hidden></p>
+  </section>
+  <section class="paneel dash aan" id="dash">
+    <div class="binnen">
+      <div class="blok a">
+      <div class="hero" id="hero"></div>
+      <div class="pushbalk" id="pushBalk" hidden></div>
+      <div id="vragen"></div>
+      <section id="klanten"></section>
+      </div>
+      <div class="blok b">
+      <p class="kop" id="cijferKop">Wat de chats deden</p>
+      <div class="tegels" id="tegels"></div>
+      <div class="grafieken">
+        <div class="grafiek"><h4>Activiteit per uur</h4><div class="uitleg" id="urenUitleg"></div><div id="uren"></div></div>
+        <div class="grafiek"><h4 id="werkTitel">Werktijd per klant</h4><div class="uitleg" id="werkUitleg">Zonder hartslagen · laatste 7 dagen</div><div class="perchat" id="perChat"></div></div>
+      </div>
+      </div>
+      <div class="blok c">
+      <p class="kop">Laatst gedaan</p>
+      <ol class="laatst" id="laatst"></ol>
+      </div>
+    </div>
+  </section>
+  <section class="paneel gesprek" id="gesprek">
+    <div class="bovenaan">
+      <button class="terug" id="terug">←</button>
+      <h2 id="gesprekNaam">God-chat</h2>
+      <span class="toestand" id="gesprekToestand"></span>
+      <button id="nieuweTaak" hidden title="Start een eigen chat voor één taak onder deze klant">+ Taak</button>
+      <button id="taakStatus" hidden></button>
+      <button id="neemOver" hidden>Neem over</button>
+    </div>
+    <div class="beurten" id="beurten"></div>
+    <div class="invoer">
+      <div class="aan">Aan <select id="doel"></select><span class="sp"></span>
+        <select id="model" title="Model van deze chat (geldt vanaf de volgende beurt)">
+          <option value="standaard">model: standaard</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="fable">Fable</option><option value="haiku">Haiku</option>
+        </select>
+        <select id="effort" title="Effort van deze chat (geldt vanaf de volgende beurt)">
+          <option value="standaard">effort: standaard</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option><option value="max">max</option>
+        </select>
+      </div>
+      <div class="rij">
+        <textarea id="tekst" rows="1" placeholder="Schrijf aan de God-chat…"></textarea>
+        <button class="mic" id="mic" title="Dicteer (⌥ Spatie): klik, praat, klik nogmaals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+        <button class="hoofd" id="stuur">Stuur</button>
+      </div>
+      <div class="hint">Enter stuurt · Shift+Enter nieuwe regel · ⌥ Spatie dicteert</div>
+    </div>
+  </section>
+  <section class="paneel rechts" id="rechts">
+    <div class="verloop" id="verloopTab">
+      <p class="kop">Verloop</p>
+      <div class="filter"><label><input type="checkbox" id="alleenDeze"> alleen de gekozen chat</label></div>
+      <ol id="verloop"></ol>
+    </div>
+  </section>
+</main>
+<dialog id="taakDialoog">
+  <form method="dialog">
+    <h3>Nieuwe taak onder <span id="taakOuder"></span></h3>
+    <p>Een eigen chat voor deze ene taak of dit ene onderwerp. Hij blijft open tot de taak af is; jij, de klantchat en de God-chat kunnen erin verder werken.</p>
+    <input id="taakNaam" maxlength="60" placeholder="Korte naam, bv. Bestelpagina teksten">
+    <textarea id="taakOpdracht" placeholder="Wat moet er gebeuren? Wat ligt er al, en wat is klaar?"></textarea>
+    <div class="knoppen"><button value="nee">Annuleer</button><button class="hoofd" value="ja">Start taak</button></div>
+  </form>
+</dialog>
+<script>
+const $ = (id) => document.getElementById(id);
+const TOESTAND = { slaapt: "slaapt", werkt: "werkt", wacht: "wacht op jou", fout: "fout", desktop: "niet in de app", uit: "uit", klaar: "klaar" };
+const BRON = { wachter: "Wachter", eigenaar: "Jij", god: "God-chat", antwoord: "Jouw antwoord", start: "Start", app: "App" };
+const LABEL = { binnen: "binnen", door: "doorgestuurd", actie: "gedaan", vraag: "vraag", antwoord: "antwoord", eigenaar: "jij", start: "start", fout: "fout", stand: "stand" };
+
+let stand = { chats: [], vragen: [], verloop: [] };
+let gekozen = localStorage.getItem("gc-gekozen") || "god";
+let gesprekVersie = null;
+let lokaalWacht = [];   // wat net verstuurd is maar nog niet in het gesprek staat: {chat, tekst, sinds, basis}
+let laatsteEigen = { chat: null, teksten: [] };   // je eigen berichten in het laatst opgehaalde gesprek
+let openVerloop = new Set();
+let concepten = {};   // getypte antwoorden per vraag, overleven het verversen
+let openConcept = new Set();   // lange concepten die je openklapte
+let openCtx = new Set();       // lange toelichtingen die je openklapte
+let openKaart = new Set();     // vragen die je op het dashboard openklapte; de rest staat er als klein kaartje
+// nr → een paar woorden uit de vraag (klanten.py kiest ze met een kleine aanroep, klanten.js haalt ze op); null = de vraag zelf
+let opschriften = {};
+try { opschriften = JSON.parse(localStorage.getItem("gc-opschriften") || "{}"); } catch (e) { opschriften = {}; }
+if (!opschriften || typeof opschriften !== "object" || Array.isArray(opschriften)) opschriften = {};
+const opschriftGevraagd = new Set();
+let wensVraag = null;            // een melding of link bracht je naar deze vraag (/#vraag=56): openklappen en in beeld brengen
+let wensAdres = location.hash;   // het hekje waarmee de app opende; verwerkt zodra de stand er is
+window.addEventListener("gc-opschriften", (e) => {
+  opschriften = e.detail && typeof e.detail === "object" && !Array.isArray(e.detail) ? e.detail : {};
+  try { localStorage.setItem("gc-opschriften", JSON.stringify(opschriften)); } catch (err) { /* vol of geblokkeerd: dan zonder */ }
+  tekenVragen();
+});
+// het opschrift van een vraag telt alleen als het letterlijk in die vraag staat: het scherm toont nooit iets wat de chat niet schreef
+const kaal = (s) => String(s ?? "").toLowerCase().replace(/[\s"'`*“”‘’«».,;:!?()\[\]{}<>…–—]+/g, " ").trim();
+function opschrift(v) {
+  const o = opschriften[v.nr];
+  return typeof o === "string" && o && (" " + kaal(v.vraag) + " ").includes(" " + kaal(o) + " ") ? o : "";
+}
+let scherm = "dash";   // wat het middenvlak toont: dash, boom, gesprek of verloopTab
+let vragenTeken = null, cijferTeken = null;
+const breed = () => window.matchMedia("(min-width: 960px)").matches;
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function opmaak(s) { return esc(s).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>"); }
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>")
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,:;!?]|$)/g, "$1<i>$2</i>")
+    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+}
+function md(tekst) {   // kleine markdown: alinea's, lijsten, koppen, codeblokken, tabellen
+  const r = String(tekst ?? "").replace(/\r/g, "").split("\n");
+  let out = "", i = 0;
+  while (i < r.length) {
+    const l = r[i];
+    if (/^```/.test(l)) {
+      const blok = []; i++;
+      while (i < r.length && !/^```/.test(r[i])) blok.push(r[i++]);
+      i++; out += `<pre><code>${esc(blok.join("\n"))}</code></pre>`; continue;
+    }
+    if (!l.trim()) { i++; continue; }
+    let m;
+    if ((m = l.match(/^(#{1,4})\s+(.*)/))) { out += `<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`; i++; continue; }
+    if (/^\s*(-{3,}|\*{3,})\s*$/.test(l)) { out += "<hr>"; i++; continue; }
+    if (/^\|.*\|\s*$/.test(l) && i + 1 < r.length && /^\|[\s:|-]+\|\s*$/.test(r[i + 1])) {
+      const cel = (x) => x.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      out += "<table><tr>" + cel(l).map((c) => `<th>${inline(c)}</th>`).join("") + "</tr>";
+      i += 2;
+      while (i < r.length && /^\|.*\|\s*$/.test(r[i])) out += "<tr>" + cel(r[i++]).map((c) => `<td>${inline(c)}</td>`).join("") + "</tr>";
+      out += "</table>"; continue;
+    }
+    if (/^\s*([-*•]|\d+[.)])\s+/.test(l)) {
+      const geordend = /^\s*\d+[.)]\s+/.test(l);
+      const items = [];
+      while (i < r.length && (/^\s*([-*•]|\d+[.)])\s+/.test(r[i]) || (/^\s{2,}\S/.test(r[i]) && items.length))) {
+        if (/^\s*([-*•]|\d+[.)])\s+/.test(r[i])) items.push(r[i].replace(/^\s*([-*•]|\d+[.)])\s+/, ""));
+        else items[items.length - 1] += " " + r[i].trim();
+        i++;
+      }
+      out += `<${geordend ? "ol" : "ul"}>` + items.map((x) => `<li>${inline(x)}</li>`).join("") + `</${geordend ? "ol" : "ul"}>`;
+      continue;
+    }
+    const alinea = [];
+    while (i < r.length && r[i].trim() && !/^(```|#{1,4}\s|\s*([-*•]|\d+[.)])\s+|\|)/.test(r[i])) alinea.push(r[i++]);
+    if (!alinea.length) alinea.push(r[i++]);
+    out += `<p>${alinea.map(inline).join("<br>")}</p>`;
+  }
+  return out;
+}
+function chat(id) { return stand.chats.find((c) => c.id === id) || { id, naam: id, toestand: "uit" }; }
+
+async function api(pad, body) {
+  const r = await fetch(pad, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {});
+  if (r.status === 401) { location.href = "/login"; throw new Error("niet ingelogd"); }   // van buiten: de sessie is verlopen
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// --- beweging: hulpjes (CSS bij "beweging"). Alleen wat nieuw is beweegt; "minder beweging" zet alles stil ---------
+const rustig = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ZACHT = "cubic-bezier(.2, .8, .2, 1)";
+let netGeklapt = null;             // de vraag die je net openklapte of dichtdeed
+let gezienVragen = null;           // welke vraagkaarten er al stonden (null = nog niets getekend)
+let vorigeKoppen = {};             // de kop per kaartje bij de vorige tekening: een nieuw opschrift vervaagt in
+let vorigGesprek = { chat: null, sleutels: new Set() };
+let gezienVerloop = null;
+// FLIP: wat blijft staan maar verschuift (een kaart erboven klapt open of verdwijnt), glijdt naar zijn nieuwe plek
+function flipVoor(elementen) { const m = new Map(); for (const [k, el] of elementen) m.set(k, el.getBoundingClientRect().top); return m; }
+function flipNa(elementen, voor) {
+  if (rustig()) return;
+  for (const [k, el] of elementen) {
+    const oud = voor.get(k);
+    if (oud == null) continue;
+    const d = oud - el.getBoundingClientRect().top;
+    if (Math.abs(d) > 1 && Math.abs(d) < 1500) el.animate([{ transform: `translateY(${d}px)` }, { transform: "none" }], { duration: 260, easing: ZACHT });
+  }
+}
+function dashStukken() {
+  const uit = [...$("vragen").querySelectorAll("article.vraag")].map((a) => ["v" + a.dataset.nr, a]);
+  for (const id of ["klanten", "pushBalk"]) if ($(id) && $(id).offsetParent) uit.push([id, $(id)]);
+  return uit;
+}
+// een afgelopen inschuif-animatie blijft anders als eindstand hangen en houdt dan een volgende beweging tegen
+document.addEventListener("animationend", (e) => {
+  const el = e.target;
+  if (!/^(gc-|kl-komt)/.test(e.animationName) || !el.classList) return;
+  el.classList.remove("nieuw", "vers", "kl-komt");
+  if (el.classList.contains("klapt")) el.classList.remove("klapt");
+  else if (el.parentElement?.classList.contains("klapt") && el === el.parentElement.lastElementChild) el.parentElement.classList.remove("klapt");
+});
+function weg(el) {   // laat een element wegschuiven en wacht tot het weg is
+  if (rustig()) return Promise.resolve();
+  el.classList.add("weg");
+  return new Promise((r) => setTimeout(r, 240));
+}
+function glijNaarOnder(doos, venster) {
+  const hoe = rustig() ? "auto" : "smooth";
+  if (venster) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: hoe });
+  else doos.scrollTo({ top: doos.scrollHeight, behavior: hoe });
+}
+
+let toonAfgesloten = false;   // de regel "Afgesloten (n)" onderaan de chatlijst, opengeklapt?
+
+function tekenBoom() {
+  const ul = $("boomLijst");
+  const wachtend = stand.vragen.filter((v) => v.status === "open").length;
+  const opDash = scherm === "dash" && breed();
+  // afgesloten taakchats staan niet meer in de lijst; onderaan één regel die openklapt (heropenen kan vanuit die chat)
+  const afgesloten = stand.chats.filter((c) => c.toestand === "klaar");
+  const rij = (c, los) => `
+    <li class="${c.soort === "god" ? "" : c.soort === "taak" ? "kind taak " + esc(c.toestand) + (c.ouder === "god" ? " ondergod" : "") + (los ? " los" : "") : "kind"} ${c.id === gekozen && !opDash ? "gekozen" : ""}" data-chat="${esc(c.id)}">
+      <span class="stip ${esc(c.toestand)}"></span>
+      <span class="naam">${los && c.ouder ? esc(chat(c.ouder).naam) + " › " : ""}${esc(c.naam)} <span class="toestand ${esc(c.toestand)}">${esc(TOESTAND[c.toestand] || c.toestand)}</span></span>
+      <span class="regel"><span class="uur">${esc(c.uur || "")}</span>${esc(c.regel || "")}</span>
+    </li>`;
+  const boomHtml = `
+    <li class="thuis ${opDash ? "gekozen" : ""}">
+      <span class="stip ${wachtend ? "wacht" : "klaar"}"></span>
+      <span class="naam">Dashboard${wachtend ? `<span class="badge">${wachtend}</span>` : ""}</span>
+    </li>` + stand.chats.filter((c) => c.toestand !== "klaar").map((c) => rij(c)).join("")
+    + (afgesloten.length ? `<li class="afgesloten" data-afgesloten>Afgesloten (${afgesloten.length}) ${toonAfgesloten ? "▾" : "▸"}</li>`
+      + (toonAfgesloten ? afgesloten.map((c) => rij(c, true)).join("") : "") : "");
+  if (ul._html !== boomHtml) {   // ongewijzigd: laten staan, dan pulseert een stip rustig door
+    const stukken = () => [...ul.querySelectorAll("li[data-chat], li[data-afgesloten]")].map((li) => [li.dataset.chat || "afgesloten", li]);
+    const voor = ul._html ? flipVoor(stukken()) : new Map();
+    ul.innerHTML = boomHtml; ul._html = boomHtml;
+    ul.querySelectorAll("li").forEach((li) => li.onclick = () => li.dataset.afgesloten != null
+      ? (toonAfgesloten = !toonAfgesloten, tekenBoom(), toonAfgesloten && !rustig() && ul.querySelectorAll("li.los").forEach((x) => x.classList.add("nieuw")))
+      : li.dataset.chat ? kies(li.dataset.chat, true) : toon("dash"));
+    flipNa(stukken(), voor);   // verdwijnt er een (afgesloten), dan glijden de andere dicht
+  }
+  const doel = $("doel");
+  const nu = doel.value;
+  doel.innerHTML = stand.chats.filter((c) => c.toestand !== "klaar" || c.id === gekozen)
+    .map((c) => `<option value="${esc(c.id)}">${c.soort === "taak" ? "  › " : ""}${esc(c.naam)}</option>`).join("");
+  doel.value = nu && stand.chats.some((c) => c.id === nu) ? nu : gekozen;
+}
+
+function wachtTekst(v) {
+  const t = v.ts ? Date.parse(v.ts) : NaN;
+  if (isNaN(t)) return v.uur || "";
+  const min = Math.floor((Date.now() - t) / 60000);
+  if (min < 1) return "net gevraagd";
+  if (min < 60) return `wacht ${min} min`;
+  if (min < 48 * 60) return `wacht ${Math.floor(min / 60)} u`;
+  return `wacht ${Math.floor(min / 1440)} dagen`;
+}
+
+function tekenVragen() {
+  const open = stand.vragen.filter((v) => v.status === "open");
+  const n = open.length;
+  $("tabDash").innerHTML = "Dashboard" + (n ? `<span class="badge">${n}</span>` : "");
+  $("knopWacht").textContent = n ? `Wacht op jou (${n})` : "Dashboard";
+  $("knopWacht").classList.toggle("wacht", n > 0);
+  const luistert = stand.chats.filter((c) => c.soort !== "taak" && !["desktop", "uit"].includes(c.toestand)).length;
+  const bezig = stand.chats.filter((c) => c.toestand === "werkt");
+  const fout = stand.chats.filter((c) => c.toestand === "fout");
+  const onder = [`${luistert} ${luistert === 1 ? "chat luistert" : "chats luisteren"}`,
+    bezig.length ? `werkt nu: <b>${bezig.map((c) => esc(c.naam)).join(", ")}</b>` : "niemand werkt nu"];
+  if (fout.length) onder.push(`⚠ fout bij <b>${fout.map((c) => esc(c.naam)).join(", ")}</b>`);
+  $("hero").innerHTML = (n
+    ? `<span class="getal">${n}</span><span class="titel">${n === 1 ? "vraag wacht" : "vragen wachten"} op jou</span>`
+    : `<span class="rust">Niets wacht op jou</span>`) + `<span class="onder">${onder.join(" · ")}</span>`;
+  const doos = $("vragen");
+  doos.querySelectorAll(".sinds").forEach((el) => { el.textContent = wachtTekst({ ts: el.dataset.ts, uur: el.dataset.uur }); });
+  const teken = open.map((v) => v.nr + (openKaart.has(Number(v.nr)) ? "+" : "|" + opschrift(v))).join(",");
+  for (const v of open) {   // een nieuwe vraag: klanten.js haalt haar opschrift op, een paar seconden later
+    if (!(v.nr in opschriften) && !opschriftGevraagd.has(v.nr)) { opschriftGevraagd.add(v.nr); window.dispatchEvent(new Event("gc-opschrift-nodig")); }
+  }
+  if (teken === vragenTeken) return;
+  // niet hertekenen terwijl je in een antwoordveld typt
+  if (doos.contains(document.activeElement) && document.activeElement.tagName === "TEXTAREA") return;
+  vragenTeken = teken;
+  const voor = flipVoor(dashStukken());
+  doos.innerHTML = open.map((v) => vraagKaart(v)).join("");
+  koppelKaarten(doos);
+  const koppen = {};
+  doos.querySelectorAll("article.vraag").forEach((a) => {
+    const nr = a.dataset.nr, titel = a.querySelector(".kk-titel");
+    if (gezienVragen && !gezienVragen.has(nr)) a.classList.add("nieuw");
+    else if (String(netGeklapt) === nr) a.classList.add("klapt");
+    if (titel) { koppen[nr] = titel.textContent; if (vorigeKoppen[nr] && vorigeKoppen[nr] !== koppen[nr] && String(netGeklapt) !== nr) titel.classList.add("vers"); }
+  });
+  vorigeKoppen = koppen; netGeklapt = null;
+  gezienVragen = new Set(open.map((v) => String(v.nr)));
+  flipNa(dashStukken(), voor);
+  if (wensVraag != null && stand.nu) {   // is de vraag intussen beantwoord, dan blijf je gewoon op het dashboard
+    const el = doos.querySelector(`article[data-nr="${wensVraag}"]`);
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+    wensVraag = null;
+  }
+}
+
+// de toelichting bij een vraag: de regel "Ja = …" apart, de rest op twee regels tot je erop klikt
+function contextHtml(v) {
+  let c = String(v.context || "").trim(), ja = "";
+  if (!c) return "";
+  const m = /^Ja\s*=\s*([\s\S]*?[.!?])(?=\s|$)/.exec(c) || /^Ja\s*=\s*([\s\S]+)$/.exec(c);
+  if (m) { ja = m[1].trim(); c = c.slice(m[0].length).trim(); }
+  const lang = c.length > 160;
+  return (ja ? `<div class="jaregel"><b>Ja</b> = ${opmaak(ja)}</div>` : "")
+    + (c ? `<div class="ctx ${lang && !openCtx.has(Number(v.nr)) ? "kort" : ""}"${lang ? ` data-ctx title="Klik voor de hele toelichting"` : ""}>${opmaak(c)}</div>` : "");
+}
+
+// het kleine kaartje op het dashboard: wie het vraagt, een paar woorden en het antwoord dat de chat aanraadt.
+// Een tik op de woorden opent de hele kaart (vraagKaart). De knop draagt de tekst van de chat zelf, onverkort: wat
+// verstuurt of live zet, blijft dat zeggen.
+function kleinKaartje(v) {
+  const naam = chat(v.chat).naam;
+  const aa = Array.isArray(v.antwoorden) && v.antwoorden.length ? v.antwoorden : ["Ja", "Nee"];
+  const kop = opschrift(v);
+  const tweede = aa.length === 2 && (String(aa[0]) + String(aa[1])).length <= 34;   // twee korte antwoorden passen naast elkaar
+  const rest = aa.length - (tweede ? 2 : 1);
+  return `
+    <article class="vraag klein" data-nr="${v.nr}">
+      <button class="kk-kop" data-klap aria-expanded="false"${kop ? ` title="${esc(v.vraag)}"` : ""}>
+        <span class="kk-wie"><b>${esc(naam)}</b><span class="sinds" data-ts="${esc(v.ts || "")}" data-uur="${esc(v.uur)}">${esc(wachtTekst(v))}</span></span>
+        <span class="kk-titel">${kop ? esc(kop) : opmaak(v.vraag)}</span>
+        <span class="kk-pijl" aria-hidden="true">›</span>
+      </button>
+      <div class="kk-snel">
+        <button class="hoofd" data-snel="${esc(aa[0])}">${esc(aa[0])}</button>
+        ${tweede ? `<button data-snel="${esc(aa[1])}">${esc(aa[1])}</button>` : ""}
+        <button class="link" data-klap>${rest > 1 ? `of ${rest} andere` : rest === 1 ? "of iets anders" : "of typ zelf"} ›</button>
+      </div>
+    </article>`;
+}
+
+// één vraag als kaart: op het dashboard en onderaan het gesprek van de chat die ze stelde
+function vraagKaart(v, inGesprek) {
+  if (!inGesprek && v.status === "open" && !openKaart.has(Number(v.nr))) return kleinKaartje(v);
+  const naam = chat(v.chat).naam;
+  const open = v.status === "open";
+  const regels = String(v.concept || "").split("\n").length;
+  const lang = regels > 3 || String(v.concept || "").length > 280;
+  const dicht = lang && !openConcept.has(Number(v.nr));
+  const toonAlles = `Toon het hele concept (${regels} ${regels === 1 ? "regel" : "regels"})`;
+  return `
+    <article class="vraag ${open ? "" : "klaar"}" data-nr="${v.nr}">
+      <div class="meta"><span class="nr">Vraag</span>${inGesprek ? "" : `<b>${esc(naam)}</b>`}${open
+        ? `<span class="sinds" data-ts="${esc(v.ts || "")}" data-uur="${esc(v.uur)}">${esc(wachtTekst(v))}</span>`
+        : `<span>${esc(v.uur)} · ${esc(v.status)}</span>`}<span class="sp"></span>${inGesprek ? "" : `<button class="link" data-open="${esc(v.chat)}">Open chat ›</button>`}${!inGesprek && open ? `<button class="link kk-dicht" data-klap title="Maak het kaartje weer klein" aria-label="Maak het kaartje weer klein">▲</button>` : ""}</div>
+      <h3 class="${String(v.vraag || "").length > 110 ? "lang" : ""}">${opmaak(v.vraag)}</h3>
+      ${contextHtml(v)}
+      ${v.concept ? `<div class="concept ${dicht ? "dicht" : ""}"><pre>${esc(v.concept)}</pre></div>${lang ? `<button class="meer" data-meer="${esc(toonAlles)}">${dicht ? esc(toonAlles) : "Toon minder"}</button>` : ""}` : ""}
+      ${open ? `
+      <div class="antw">
+        ${(Array.isArray(v.antwoorden) && v.antwoorden.length ? v.antwoorden : ["Ja", "Nee"]).map((a, i) => `<button class="${i === 0 ? "hoofd" : ""}" data-snel="${esc(a)}">${esc(a)}</button>`).join("")}
+        ${inGesprek ? `<button class="link" data-typ>Iets anders? Typ het in het veld hieronder ›</button>` : `
+        <div class="zeg">
+          <textarea rows="1" title="Gaat naar deze chat, nooit naar de klant" placeholder="Of zeg iets anders tegen ${esc(naam)}…">${esc(concepten[v.nr] || "")}</textarea>
+          <button data-eigen title="Stuur naar ${esc(naam)} (gaat naar de chat, nooit naar de klant)" aria-label="Stuur naar ${esc(naam)}">↑</button>
+        </div>`}
+      </div>`
+      : ""}
+    </article>`;
+}
+
+function koppelKaarten(doos) {
+  doos.querySelectorAll("article.vraag").forEach((art) => {
+    const nr = Number(art.dataset.nr);
+    const klap = () => {   // klein kaartje ↔ hele kaart
+      openKaart.has(nr) ? openKaart.delete(nr) : openKaart.add(nr);
+      netGeklapt = nr; vragenTeken = null; tekenVragen();
+      const terug = $("vragen").querySelector(`article[data-nr="${nr}"] [data-klap]`);
+      if (terug) terug.focus({ preventScroll: true });
+    };
+    art.querySelectorAll("[data-klap]").forEach((b) => b.onclick = klap);
+    if (art.classList.contains("klein")) art.onclick = (e) => { if (!e.target.closest("button")) klap(); };   // ook naast de knop
+    const meer = art.querySelector("[data-meer]");
+    const wissel = () => {
+      const dicht = art.querySelector(".concept").classList.toggle("dicht");
+      dicht ? openConcept.delete(nr) : openConcept.add(nr);
+      meer.textContent = dicht ? meer.dataset.meer : "Toon minder";
+    };
+    if (meer) { meer.onclick = wissel; art.querySelector(".concept").onclick = (e) => { if (e.currentTarget.classList.contains("dicht")) wissel(); }; }
+    const ctx = art.querySelector("[data-ctx]");
+    if (ctx) ctx.onclick = () => { ctx.classList.toggle("kort") ? openCtx.delete(nr) : openCtx.add(nr); };
+    const naarChat = art.querySelector("[data-open]");
+    if (naarChat) naarChat.onclick = () => kies(naarChat.dataset.open, true);
+    art.querySelectorAll("[data-snel]").forEach((b) => b.onclick = () => antwoord(nr, b.dataset.snel, art));
+    const typ = art.querySelector("[data-typ]");
+    if (typ) typ.onclick = () => $("tekst").focus();
+    const ta = art.querySelector("textarea");
+    if (!ta) return;
+    const groei = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 160) + "px"; };
+    if (ta.value) groei();
+    ta.oninput = () => { concepten[nr] = ta.value; groei(); };
+    ta.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && ta.value.trim()) { e.preventDefault(); antwoord(nr, ta.value.trim(), art); } };
+    art.querySelector("[data-eigen]").onclick = () => { if (ta.value.trim()) antwoord(nr, ta.value.trim(), art); };
+  });
+}
+
+// --- cijfers op het dashboard: alles uit het verloop dat de app al meestuurt ---------------------------------
+function tijd(e) {   // tijdstip van een verloopregel; het nepscherm kent alleen een uur
+  if (e.ts) return Date.parse(e.ts);
+  const m = /^(\d\d):(\d\d)/.exec(e.uur || "");
+  if (!m) return NaN;
+  const d = new Date(); d.setHours(+m[1], +m[2], 0, 0);
+  if (d.getTime() > Date.now() + 60000) d.setDate(d.getDate() - 1);
+  return d.getTime();
+}
+function hoofdchat(id) {   // een taakchat telt bij de chat waaronder hij hangt
+  const c = stand.chats.find((x) => x.id === id);
+  return c ? (c.soort === "taak" && c.ouder ? c.ouder : c.id) : String(id).split("--")[0];
+}
+const klok = (t) => new Date(t).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" });
+
+function tekenCijfers() {
+  const nu = Date.now(), uurMs = 3600e3;
+  const teken = `${stand.verloop[0]?.id}|${stand.verloop.length}|${Math.floor(nu / uurMs)}|${stand.chats.map((c) => c.id + c.toestand).join()}`;
+  if (teken === cijferTeken) return;
+  cijferTeken = teken;
+  const alle = stand.verloop.map((e) => ({ ...e, t: tijd(e) })).filter((e) => !isNaN(e.t));
+  let vanaf = nu - 24 * uurMs;
+  const oudste = alle.length ? Math.min(...alle.map((e) => e.t)) : nu;
+  const afgekapt = stand.verloop.length >= 300 && oudste > vanaf;   // de app stuurt de laatste 300 regels mee
+  if (afgekapt) vanaf = oudste;
+  const ev = alle.filter((e) => e.t >= vanaf);
+  const tel = (soort) => ev.filter((e) => e.soort === soort).length;
+  const binnen = ev.filter((e) => e.soort === "binnen" && !/^hartslag/.test(e.kop || ""));
+  const berichten = binnen.reduce((n, e) => n + Number((/(\d+) om af te handelen/.exec(e.kop || "") || [0, 1])[1]), 0);
+  const werkers = new Set(ev.filter((e) => e.soort === "actie").map((e) => e.chat)).size;
+  const taken = stand.chats.filter((c) => c.soort === "taak");
+  const takenOpen = taken.filter((c) => c.toestand !== "klaar").length;
+  const fouten = tel("fout");
+  const tegel = (lbl, w, sub, let_) => `<div class="tegel"><div class="lbl">${lbl}</div><div class="w">${w}</div><div class="sub ${let_ ? "let" : ""}">${sub}</div></div>`;
+  $("cijferKop").textContent = "Wat de chats deden · " + (afgekapt ? `sinds ${klok(vanaf)}` : "laatste 24 uur");
+  $("tegels").innerHTML =
+    tegel("Berichten opgepikt", berichten, "WhatsApp en je zelfchat") +
+    tegel("Beurten gewerkt", tel("actie"), `door ${werkers} ${werkers === 1 ? "chat" : "chats"}`) +
+    tegel("Vragen aan jou", tel("vraag"), `${tel("antwoord")} beantwoord`) +
+    tegel("Doorgestuurd", tel("door"), "van chat naar chat") +
+    tegel("Taken open", takenOpen, `${taken.length - takenOpen} afgerond`) +
+    tegel("Fouten", fouten, fouten ? "⚠ kijk in het Verloop" : "alles liep goed", fouten > 0);
+
+  // activiteit per uur: 24 kolommen, de laatste is het lopende uur
+  const h0 = Math.floor(nu / uurMs) * uurMs;
+  const bak = Array(24).fill(0);
+  for (const e of alle) {
+    if (e.soort === "stand") continue;
+    const i = 23 - Math.floor((h0 + uurMs - 1 - e.t) / uurMs);
+    if (i >= 0 && i < 24) bak[i]++;
+  }
+  const hoogst = Math.max(...bak), totaal = bak.reduce((a, b) => a + b, 0), piek = bak.indexOf(hoogst);
+  const begin = (i) => h0 - (23 - i) * uurMs;
+  $("urenUitleg").textContent = totaal ? `${totaal} gebeurtenissen in 24 uur, drukste uur om ${klok(begin(piek))}` : "Nog niets in de laatste 24 uur";
+  $("uren").innerHTML = `<div class="uren" role="img" aria-label="Gebeurtenissen per uur, laatste 24 uur: ${totaal} in totaal">` + bak.map((n, i) =>
+    `<div class="kolom" tabindex="0" data-tip="${klok(begin(i))}–${klok(begin(i) + uurMs)} · ${n} ${n === 1 ? "gebeurtenis" : "gebeurtenissen"}">${n && i === piek ? `<span class="top">${n}</span>` : ""}<div class="staaf" style="height:${n ? Math.max(3, Math.round(n / hoogst * 64)) : 0}px"></div></div>`).join("") +
+    `</div><div class="urenas">${[0, 6, 12, 18].map((i) => `<span>${klok(begin(i))}</span>`).join("")}<span>nu</span></div>`;
+
+  // werktijd per klant: #perChat vult klanten.js
+
+  const laatst = alle.filter((e) => e.soort === "actie").slice(0, 6);
+  $("laatst").innerHTML = laatst.map((e) => `<li data-chat="${esc(e.chat)}"><span class="t">${esc(e.uur)}</span><span><b>${esc(e.route)}</b> <span class="s">${esc(e.kop || "")}</span></span></li>`).join("")
+    || `<li><span></span><span class="s">Nog niets gedaan.</span></li>`;
+  document.querySelectorAll("#perChat [data-chat], #laatst [data-chat]").forEach((el) => el.onclick = () => {
+    if (stand.chats.some((c) => c.id === el.dataset.chat)) kies(el.dataset.chat, true);
+  });
+}
+
+async function antwoord(nr, tekst, art) {
+  art.querySelectorAll("button").forEach((b) => b.disabled = true);
+  try { await api("/api/antwoord", { nr, tekst }); delete concepten[nr]; await weg(art); }
+  catch (e) { alert("Niet gelukt: " + e.message); art.querySelectorAll("button").forEach((b) => b.disabled = false); }
+  ververs();
+}
+
+function tekenVerloop() {
+  const alleen = $("alleenDeze").checked;
+  const rijen = stand.verloop.filter((e) => !alleen || e.chat === gekozen || e.naar === gekozen || e.van === gekozen);
+  const vers = gezienVerloop ? rijen.filter((e) => !gezienVerloop.has(e.id)).map((e) => e.id) : [];
+  gezienVerloop = new Set(rijen.map((e) => e.id));
+  const verloopHtml = rijen.map((e) => `
+    <li class="${openVerloop.has(e.id) ? "open" : ""}" data-id="${esc(e.id)}">
+      <span class="t">${esc(e.uur)}</span>
+      <span class="wat"><span class="label ${esc(e.soort)}">${esc(LABEL[e.soort] || e.soort)}</span><span class="route">${esc(e.route)}</span>
+        <span class="samen"> ${esc(e.kop || "")}</span></span>
+      ${e.tekst ? `<div class="exact"><pre>${esc(e.tekst)}</pre></div>` : ""}
+    </li>`).join("") || `<p class="leeg">Nog niets vandaag.</p>`;
+  const lijst = $("verloop");
+  if (lijst._html === verloopHtml) return;   // ongewijzigd: niets opnieuw opbouwen
+  lijst.innerHTML = verloopHtml; lijst._html = verloopHtml;
+  if (!rustig()) for (const id of vers) lijst.querySelector(`li[data-id="${CSS.escape(id)}"]`)?.classList.add("nieuw");
+  $("verloop").querySelectorAll("li").forEach((li) => li.onclick = (ev) => {
+    if (ev.target.closest(".exact")) return;
+    openVerloop.has(li.dataset.id) ? openVerloop.delete(li.dataset.id) : openVerloop.add(li.dataset.id);
+    li.classList.toggle("open");
+  });
+}
+
+function tekenKop() {
+  const c = chat(gekozen);
+  $("gesprekNaam").textContent = c.naam;
+  const t = $("gesprekToestand");
+  t.className = "toestand " + c.toestand;
+  t.textContent = TOESTAND[c.toestand] || c.toestand;
+  $("neemOver").hidden = !(c.toestand === "desktop" || (c.toestand === "uit" && c.soort !== "taak"));
+  $("nieuweTaak").hidden = !(c.soort !== "taak" && c.toestand !== "desktop" && c.toestand !== "uit");
+  $("taakStatus").hidden = c.soort !== "taak";
+  $("taakStatus").textContent = c.toestand === "klaar" ? "Heropen" : "Taak sluiten";
+  if (c.soort === "taak" && c.ouder) $("gesprekNaam").textContent = `${chat(c.ouder).naam} › ${c.naam}`;
+  const lopend = stand.chats.filter((x) => x.toestand !== "klaar");   // afgesloten taakchats tellen niet mee
+  const inApp = lopend.filter((x) => x.toestand !== "desktop" && x.toestand !== "uit").length;
+  const open = stand.vragen.filter((v) => v.status === "open").length;
+  $("stand").textContent = `${inApp} van ${lopend.length} chats in de app · ${open ? open + " wacht" + (open > 1 ? "en" : "") + " op jou" : "niets wacht op jou"}`;
+  $("nep").hidden = stand.modus !== "nep";
+  plaatsTekst();
+}
+function plaatsTekst() {   // heeft de chat een open vraag, dan is het invoerveld het antwoordveld
+  const id = $("doel").value || gekozen;
+  const open = stand.vragen.some((v) => v.chat === id && v.status === "open");
+  $("tekst").placeholder = open ? (breed() ? "Antwoord op de vraag, of schrijf iets anders…" : "Antwoord, of iets anders…") : `Schrijf aan ${chat(id).naam}…`;
+}
+
+async function tekenGesprek(forceer) {
+  const c = chat(gekozen);
+  const vragenHier = stand.vragen.filter((v) => v.chat === gekozen);
+  const versie = `${gekozen}:${c.versie}:${vragenHier.map((v) => v.nr + v.status).join(",")}`;
+  const bezig = document.activeElement;
+  if (!forceer && $("beurten").contains(bezig) && bezig.tagName === "TEXTAREA") return;   // je typt in een vraag
+  if (!forceer && gesprekVersie === versie) return;
+  gesprekVersie = versie;
+  const gestart = Date.now();
+  const g = await api(`/api/gesprek?chat=${encodeURIComponent(gekozen)}`);
+  // Wat je stuurde terwijl de chat nog werkt. Een server die de rij meegeeft (`wacht`) is de baas; een oudere niet,
+  // dan blijft het bericht staan tot het een keer vaker in het gesprek voorkomt dan toen het verstuurd werd.
+  const eigenTeksten = g.beurten.filter((b) => b.rol === "user" && b.bron === "eigenaar").map((b) => b.tekst);
+  laatsteEigen = { chat: gekozen, teksten: eigenTeksten };
+  lokaalWacht = lokaalWacht.filter((w) => w.chat !== gekozen || (Array.isArray(g.wacht) ? w.sinds > gestart
+    : eigenTeksten.filter((t) => t === w.tekst).length <= w.basis));
+  const wachtend = [...(Array.isArray(g.wacht) ? g.wacht.filter((w) => w.bron === "eigenaar" || w.bron === "antwoord") : []),
+    ...lokaalWacht.filter((w) => w.chat === gekozen)];
+  const doos = $("beurten");
+  const onderaan = doos.scrollHeight - doos.scrollTop - doos.clientHeight < 80;
+  const pagOnderaan = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
+  let html = "";
+  const zelfde = {};   // beweging: per beurt een vaste sleutel (rol, bron, uur), of de tekst bij je eigen berichten
+  const sleutel = (s) => { zelfde[s] = (zelfde[s] || 0) + 1; return esc(s + "#" + zelfde[s]); };
+  if (c.toestand === "uit" && c.soort !== "taak") html += `<div class="desktopnotitie">De noodrem staat erop: deze chat luistert niet. Met <b>Neem over</b> haal je hem eraf en start de app de chat opnieuw.</div>`;
+  if (c.toestand === "desktop") html += `<div class="desktopnotitie">Deze chat draait niet in de app. Met <b>Neem over</b> start de app een sessie en een wachter; luistert er elders al een chat voor dit project, dan krijgt die OVERGENOMEN en stopt hij vanzelf.</div>`;
+  for (const b of g.beurten) {
+    if (b.rol === "user") {
+      const wie = BRON[b.bron] || chat(b.bron).naam;
+      if (b.bron === "wachter" || b.bron === "start" || b.bron === "app") {
+        const eerste = String(b.tekst || "").split("\n").find((x) => x.trim()) || "";
+        html += `<div class="beurt user systeem" data-k="${sleutel("s" + b.bron + b.uur)}"><details class="systeem"><summary>${esc(wie)} · ${esc(b.uur)} · ${esc(eerste)}</summary><pre>${esc(b.tekst)}</pre></details></div>`;
+      } else {
+        html += `<div class="beurt user ${esc(b.bron)}" data-k="${sleutel(b.bron === "eigenaar" ? "r" + b.tekst : "u" + b.bron + b.uur)}">${b.bron === "eigenaar" ? "" : `<div class="wie">${esc(wie)} · ${esc(b.uur)}</div>`}<div class="tekst">${opmaak(b.tekst)}</div></div>`;
+      }
+    } else {
+      html += `<div class="beurt assistant" data-k="${sleutel("a" + b.uur)}">`;
+      const kaarten = [];
+      for (const deel of b.delen) {
+        if (deel.soort === "tekst") html += `<div class="md">${md(deel.tekst)}</div>`;
+        else {
+          const gewoon = [];
+          for (const t of deel.tools) {
+            const m = t.naam === "vraag_eigenaar" && /Vraag (\d+)/.exec(t.uitvoer || "");
+            const v = m && vragenHier.find((x) => x.nr === Number(m[1]));
+            if (!v) gewoon.push(m ? { ...t, naam: "Vraag · beantwoord" } : t);
+            else if (v.status !== "open") kaarten.push(vraagKaart(v, true));   // een open vraag komt helemaal onderaan
+          }
+          if (gewoon.length) html += `<details class="tools"><summary>${esc(gewoon.map((t) => t.naam).join(" · "))}</summary>${gewoon.map((t) => `<div class="tool"><b>${esc(t.naam)}</b><pre>${esc(t.invoer)}</pre>${t.uitvoer ? `<pre>${esc(t.uitvoer)}</pre>` : ""}</div>`).join("")}</details>`;
+        }
+      }
+      html += kaarten.join("");
+      if (!b.delen.length && !b.einde) html += `<div class="einde denkt" style="margin:0">denkt…</div>`;
+      html += `</div>`;
+      if (b.einde) html += `<div class="einde ${/^beurt klaar/.test(b.einde) ? "" : "fout"}" data-k="${sleutel("e" + b.uur)}">${esc(b.uur)} · ${esc(b.einde)}</div>`;
+    }
+  }
+  const open = vragenHier.filter((v) => v.status === "open");
+  if (open.length) html += `<div class="beurt assistant" data-k="${esc("v" + open.map((v) => v.nr).join(","))}">${open.map((v) => vraagKaart(v, true)).join("")}</div>`;
+  if (!g.beurten.length && !open.length && c.toestand !== "desktop") html += `<p class="leeg">Nog geen beurten.</p>`;
+  for (const w of wachtend) html += `<div class="beurt user eigenaar wachtend" data-k="${sleutel("r" + w.tekst)}"><div class="tekst">${opmaak(w.tekst)}</div><div class="wie">wacht tot ${esc(c.naam)} klaar is</div></div>`;
+  doos.innerHTML = html;
+  koppelKaarten(doos);
+  const sleutels = new Set([...doos.children].map((x) => x.dataset.k).filter(Boolean));
+  const zelfdeChat = vorigGesprek.chat === gekozen;
+  if (zelfdeChat && !rustig()) for (const x of doos.children) if (x.dataset.k && !vorigGesprek.sleutels.has(x.dataset.k)) x.classList.add("nieuw");
+  vorigGesprek = { chat: gekozen, sleutels };
+  // naar onder: bij een andere chat meteen, bij wat binnenkomt zacht glijdend
+  if (onderaan || forceer) { if (forceer && !zelfdeChat) doos.scrollTop = doos.scrollHeight; else glijNaarOnder(doos, false); }
+  if (!breed() && scherm === "gesprek" && (forceer || pagOnderaan)) {
+    if (forceer && !zelfdeChat) window.scrollTo(0, document.documentElement.scrollHeight); else glijNaarOnder(doos, true);
+  }
+}
+
+function kies(id, open) {
+  gekozen = id;
+  localStorage.setItem("gc-gekozen", id);
+  $("doel").value = id;
+  if (open) { if (scherm !== "gesprek") terugNaar = scherm === "dash" ? "dash" : "boom"; toon("gesprek"); }
+  tekenBoom(); tekenKop(); tekenModel(); tekenGesprek(true);   // de lijsten meteen bij deze chat
+  if ($("alleenDeze").checked) tekenVerloop();
+}
+
+function toon(paneel) {   // "dash", "boom", "gesprek" of "verloopTab"
+  if (breed()) {
+    if (paneel === "verloopTab") return lade("verloop");
+    if (paneel === "boom") paneel = "dash";
+  }
+  if (!breed()) {   // de terugknop van de telefoon: zie bij terugNaar
+    if (paneel === "gesprek" && !inGeschiedenis) { history.pushState({ gc: "gesprek" }, ""); inGeschiedenis = true; }
+    else if (paneel !== "gesprek" && scherm === "gesprek" && inGeschiedenis) { stilTerug = true; history.back(); }
+  }
+  let richting = null;
+  if (paneel !== scherm) {   // beweging: een tab komt uit zijn kant, een gesprek van rechts, terug van links
+    const plek = { dash: 0, boom: 1, verloopTab: 2, gesprek: 3 };
+    richting = paneel === "gesprek" ? "vooruit" : scherm === "gesprek" ? "terug"
+      : (plek[paneel] ?? 0) >= (plek[scherm] ?? 0) ? "rechts" : "links";
+    $("main").dataset.richting = richting;
+  }
+  scherm = paneel;
+  const zicht = paneel === "verloopTab" ? "rechts" : paneel;
+  const wissel = () => {
+    for (const id of ["dash", "boom", "gesprek", "rechts"]) $(id).classList.toggle("aan", id === zicht);
+    const tab = paneel === "gesprek" ? "boom" : paneel;
+    document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("aan", b.dataset.tab === tab));
+    tekenBoom();
+    if (paneel !== "gesprek") (breed() ? $(zicht) : window).scrollTo(0, 0);
+  };
+  // op de telefoon: een gesprek openen of sluiten is een volle push, zoals in de WhatsApp-tab
+  if ((richting === "vooruit" || richting === "terug") && !breed() && !rustig() && document.startViewTransition) {
+    delete $("main").dataset.richting;   // anders schuift het paneel binnen de push nog eens apart
+    document.documentElement.dataset.vt = richting;
+    try {
+      const vt = document.startViewTransition(wissel);
+      vt.finished.finally(() => { if (document.documentElement.dataset.vt === richting) delete document.documentElement.dataset.vt; });
+      return;
+    } catch (e) { delete document.documentElement.dataset.vt; }
+  }
+  wissel();
+}
+document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => toon(b.dataset.tab));
+let terugNaar = "boom";   // waar "←" in een gesprek naartoe gaat
+// De terugknop van de telefoon (ook in de geïnstalleerde app) doet hetzelfde als "←": een gesprek openen zet op een smal
+// scherm één stap in de geschiedenis (in toon), teruggaan haalt hem weer weg. Zonder dit sluit "terug" de app.
+let inGeschiedenis = false, stilTerug = false;
+window.addEventListener("popstate", () => {
+  inGeschiedenis = false;
+  if (stilTerug) { stilTerug = false; return; }   // wij gingen zelf terug omdat je op een tab tikte
+  if (scherm === "gesprek") toon(terugNaar);
+});
+$("terug").onclick = () => { if (inGeschiedenis) history.back(); else toon(terugNaar); };
+$("thuis").onclick = () => toon("dash");
+window.matchMedia("(min-width: 960px)").addEventListener("change", () => { lade(null); toon(scherm === "gesprek" ? "gesprek" : "dash"); });
+$("alleenDeze").onchange = tekenVerloop;
+$("doel").onchange = () => { plaatsTekst(); tekenModel(); };
+
+$("tekst").addEventListener("input", (e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px"; });
+$("tekst").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("stuur").click(); }
+});
+$("stuur").onclick = async () => {
+  const tekst = $("tekst").value.trim();
+  if (!tekst) return;
+  const doel = $("doel").value || gekozen;
+  $("stuur").disabled = true;
+  try {
+    await api("/api/zeg", { chat: doel, tekst });
+    // meteen tonen, ook als de chat nog aan iets anders werkt
+    lokaalWacht.push({ chat: doel, tekst, sinds: Date.now(), basis: laatsteEigen.chat === doel ? laatsteEigen.teksten.filter((t) => t === tekst).length : 0 });
+    $("tekst").value = ""; $("tekst").style.height = "auto";
+    if (doel !== gekozen) kies(doel); else await tekenGesprek(true);
+  }
+  catch (e) { alert("Niet gelukt: " + e.message); }
+  $("stuur").disabled = false;
+  ververs();
+};
+$("nieuweTaak").onclick = () => {
+  $("taakOuder").textContent = chat(gekozen).naam;
+  $("taakDialoog").returnValue = "nee";
+  $("taakDialoog").showModal();
+  $("taakNaam").focus();
+};
+$("taakDialoog").addEventListener("close", async () => {
+  if ($("taakDialoog").returnValue !== "ja") return;
+  const naam = $("taakNaam").value.trim(), opdracht = $("taakOpdracht").value.trim();
+  if (!naam || !opdracht) { alert("Geef een naam en een opdracht."); return; }
+  try {
+    const r = await api("/api/taak", { ouder: gekozen, naam, opdracht });
+    $("taakNaam").value = ""; $("taakOpdracht").value = "";
+    await ververs(); kies(r.chat, true);
+  } catch (e) { alert("Niet gelukt: " + e.message); }
+});
+$("taakStatus").onclick = async () => {
+  const c = chat(gekozen), sluiten = c.toestand !== "klaar";
+  if (sluiten && !confirm(`De taak "${c.naam}" sluiten? De chat stopt; heropenen kan tot de volgende "Nieuwe dag".`)) return;
+  try { await api("/api/taak-status", { chat: gekozen, status: sluiten ? "klaar" : "open" }); } catch (e) { alert("Niet gelukt: " + e.message); }
+  ververs();
+};
+$("neemOver").onclick = async () => {
+  const c = chat(gekozen);
+  if (!confirm(`${c.naam} starten in de app? Luistert er elders al een chat voor, dan krijgt die OVERGENOMEN en stopt vanzelf.`)) return;
+  try { await api("/api/neem-over", { chat: gekozen }); } catch (e) { alert("Niet gelukt: " + e.message); }
+  ververs();
+};
+$("nieuweDag").onclick = async () => {
+  if (!confirm("Nieuwe dag: verse sessies voor alle chats in de app. Het geheugen blijft in de klantmappen. Doorgaan?")) return;
+  try { await api("/api/nieuwe-dag", {}); } catch (e) { alert("Niet gelukt: " + e.message); }
+  ververs();
+};
+
+// --- lade rechts (breed scherm) ---------------------------------------------------------------------------
+function lade(wat) {   // "verloop" of null (dicht); een tweede klik sluit
+  const r = $("rechts");
+  r.classList.toggle("lade", Boolean(wat) && !r.classList.contains("lade"));
+}
+$("knopWacht").onclick = () => { lade(null); toon("dash"); };
+$("knopVerloop").onclick = () => lade("verloop");
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") lade(null); });
+document.addEventListener("click", (e) => {
+  if (breed() && $("rechts").classList.contains("lade") && !e.target.closest("#rechts, header")) lade(null);
+});
+
+// --- model en effort per chat --------------------------------------------------------------------------------
+// Model en effort: de lijsten tonen altijd de chat waarnaar je schrijft. Een keuze stuurt alleen wat je
+// veranderde; het andere veld komt uit de stand van de server. Zo zet een lijst die nog de vorige chat toonde (of een
+// verversing die onderweg was) nooit het model van een chat terug.
+let modelNet = null;   // {chat, model, effort, tot}: net gekozen, de server heeft het misschien nog niet
+function tekenModel() {
+  const doel = $("doel").value || gekozen, c = chat(doel);
+  const net = modelNet && modelNet.chat === doel && Date.now() < modelNet.tot ? modelNet : null;
+  if (net && (c.model || "standaard") === net.model && (c.effort || "standaard") === net.effort) modelNet = null;   // de server is mee
+  for (const id of ["model", "effort"]) {
+    const el = $(id);
+    if (document.activeElement !== el) el.value = (net && modelNet ? net[id] : c[id]) || "standaard";
+  }
+}
+async function zetModel(e) {
+  const doel = $("doel").value || gekozen, c = chat(doel);
+  const veld = e && e.target && e.target.id === "effort" ? "effort" : "model";
+  const keuze = { model: c.model || "standaard", effort: c.effort || "standaard" };
+  if (modelNet && modelNet.chat === doel && Date.now() < modelNet.tot) Object.assign(keuze, { model: modelNet.model, effort: modelNet.effort });
+  keuze[veld] = $(veld).value;   // alleen wat je net koos; de rest zoals de server het kent
+  modelNet = { chat: doel, ...keuze, tot: Date.now() + 8000 };
+  try { await api("/api/model", { chat: doel, ...keuze }); }
+  catch (err) { modelNet = null; alert("Niet gelukt: " + err.message); }
+  $("model").blur(); $("effort").blur();
+  ververs();
+}
+$("model").onchange = zetModel;
+$("effort").onchange = zetModel;
+
+// --- dicteren: opnemen in de browser, uitschrijven op de Mac (mlx-whisper) -----------------------------------
+// de stand van het dicteren, zichtbaar boven het veld: neemt op (met looptijd), schrijft uit (met seconden)
+function dicteerStand(knop, veld) {
+  const rij = knop.closest(".rij, .invoer, .metmic") || veld.parentElement;
+  let el = null, klok = null, t0 = 0;
+  const tijd = () => { const s = Math.round((Date.now() - t0) / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const zet = (soort, html) => {
+    if (!el) { el = document.createElement("div"); el.setAttribute("role", "status"); rij.parentElement.insertBefore(el, rij); }
+    el.className = "dicteerstand " + soort; el.innerHTML = html;
+  };
+  const loop = (f) => { clearInterval(klok); t0 = Date.now(); f(); klok = setInterval(f, 500); };
+  return {
+    neemt: () => loop(() => zet("neemt", `<span class="stip"></span>Neemt op · ${tijd()} · tik op de microfoon om te stoppen`)),
+    schrijft: () => { clearInterval(klok); veld.setAttribute("aria-busy", "true"); if (el) el.remove(); el = null; },   // het rondje op de microfoon volstaat
+    klaar: () => { clearInterval(klok); veld.removeAttribute("aria-busy"); if (el) el.remove(); el = null; },
+  };
+}
+let opname = null;
+const MICTITEL = "Dicteer (⌥ Spatie): klik, praat, klik nogmaals";
+async function mic() {
+  const knop = $("mic");
+  if (knop.classList.contains("schrijft")) return;
+  if (opname) { opname.stop(); return; }
+  let stroom;
+  try { stroom = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) {
+    alert("Geen toegang tot de microfoon (" + e.name + "). Open http://127.0.0.1:8742 in Safari of Chrome en sta de microfoon toe, of dicteer met macOS (twee keer fn).");
+    return;
+  }
+  const soort = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
+  const rec = new MediaRecorder(stroom, soort ? { mimeType: soort } : {});
+  const stukken = [];
+  const st = dicteerStand(knop, $("tekst"));
+  rec.ondataavailable = (e) => { if (e.data.size) stukken.push(e.data); };
+  rec.onstop = async () => {
+    stroom.getTracks().forEach((t) => t.stop());
+    opname = null;
+    knop.classList.remove("neemt"); knop.classList.add("schrijft"); knop.title = "Schrijft uit…";
+    st.schrijft();
+    try {
+      const blob = new Blob(stukken, { type: (rec.mimeType || "audio/webm").split(";")[0] });
+      const r = await fetch("/api/dicteer", { method: "POST", headers: { "content-type": blob.type }, body: blob });
+      if (!r.ok) throw new Error(await r.text());
+      const { tekst } = await r.json();
+      if (tekst) {
+        const ta = $("tekst");
+        const a = ta.selectionStart ?? ta.value.length, b = ta.selectionEnd ?? ta.value.length;
+        const voor = ta.value.slice(0, a), na = ta.value.slice(b);
+        const tussen = voor && !/\s$/.test(voor) ? " " : "";
+        ta.value = voor + tussen + tekst + na;
+        ta.focus(); ta.selectionStart = ta.selectionEnd = (voor + tussen + tekst).length;
+        ta.dispatchEvent(new Event("input"));
+      }
+    } catch (e) { alert("Dicteren niet gelukt: " + e.message); }
+    st.klaar();
+    knop.classList.remove("schrijft"); knop.title = MICTITEL;
+  };
+  rec.start();
+  opname = rec;
+  st.neemt();
+  knop.classList.add("neemt"); knop.title = "Neemt op… klik om te stoppen";
+}
+$("mic").onclick = mic;
+document.addEventListener("keydown", (e) => { if (e.altKey && e.code === "Space") { e.preventDefault(); mic(); } });
+
+async function ververs() {
+  try {
+    stand = await api("/api/stand");
+    if (wensAdres) { const adres = wensAdres; wensAdres = ""; naarAdres(adres); }   // de app opende op /#vraag=… of /#chat=…
+    tekenBoom(); tekenVragen(); tekenCijfers(); tekenVerloop(); tekenKop(); tekenModel(); await tekenGesprek(false);
+  } catch (e) { $("stand").textContent = "geen verbinding met de app"; }
+}
+toon("dash");   // je landt op het dashboard
+ververs();
+setInterval(ververs, 2500);
+// --- meldingen (Web Push): /sw.js toont ze; hier zet je ze per toestel aan of uit. Regels en tekst: push.py, PUSH.md ---
+const push = { kan: "serviceWorker" in navigator && "PushManager" in window && "Notification" in window, stand: null, sub: null, netAan: false, uitslag: "" };
+const sleutelBytes = (s) => Uint8Array.from(atob(String(s).replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+function zelfdeSleutel(sub) {   // hoort dit abonnement bij de sleutel die de app nu heeft?
+  try { const a = new Uint8Array(sub.options.applicationServerKey), b = sleutelBytes(push.stand.sleutel); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  catch (e) { return true; }
+}
+// een melding (of een link) brengt je naar één vraag of één chat: /#vraag=56, /#chat=bakkerij
+function naarAdres(hekje) {
+  const m = /^#(vraag|chat)=([\w-]{1,80})$/.exec(hekje || "");
+  if (!m) return;
+  if (!stand.nu) { wensAdres = hekje; return; }   // de stand is er nog niet: ververs() pakt het op
+  if (m[1] === "chat") { if (stand.chats.some((c) => c.id === m[2])) kies(m[2], true); }
+  else { wensVraag = Number(m[2]); openKaart.add(wensVraag); toon("dash"); vragenTeken = null; tekenVragen(); }
+  if (location.hash === hekje) history.replaceState(history.state, "", location.pathname + location.search);   // het hekje heeft zijn werk gedaan
+}
+window.addEventListener("hashchange", () => naarAdres(location.hash));
+if (push.kan) navigator.serviceWorker.addEventListener("message", (e) => {
+  if (e.data && e.data.soort === "gc-open") { try { naarAdres(new URL(e.data.url).hash); } catch (fout) { /* geen geldig adres */ } }
+});
+async function pushBegin() {
+  if (!push.kan) return;
+  try {
+    const r = await fetch("/api/push/stand", { cache: "no-store" });
+    if (!r.ok) return;   // deze app heeft (nog) geen meldingen
+    push.stand = await r.json();
+    if (!push.stand.beschikbaar || !push.stand.sleutel) return;
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && !zelfdeSleutel(sub)) { await sub.unsubscribe(); sub = null; }   // de app kreeg een nieuwe sleutel: opnieuw aanzetten
+    if (sub && Notification.permission === "granted") {
+      const a = await api("/api/push/abonneer", { abonnement: sub.toJSON() });   // de app onthoudt dit toestel (ook na een verhuis)
+      if (a.ok) push.sub = sub;
+    }
+  } catch (e) { /* geen meldingen op dit toestel: de rest van de app werkt gewoon */ }
+  tekenPush();
+}
+async function pushAan() {
+  push.uitslag = "";
+  try {
+    if (await Notification.requestPermission() !== "granted") { push.uitslag = "Je browser gaf geen toestemming voor meldingen."; return tekenPush(); }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && !zelfdeSleutel(sub)) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: sleutelBytes(push.stand.sleutel) });
+    const a = await api("/api/push/abonneer", { abonnement: sub.toJSON() });
+    if (!a.ok) throw new Error(a.fout || "de app weigerde dit toestel");
+    push.sub = sub; push.netAan = true;
+  } catch (e) { push.uitslag = "Aanzetten lukte niet: " + (e.message || e); }
+  tekenPush();
+}
+async function pushUit() {
+  try { const adres = push.sub.endpoint; await push.sub.unsubscribe(); await api("/api/push/afmelden", { endpoint: adres }); } catch (e) { /* het toestel is hoe dan ook afgemeld */ }
+  push.sub = null; push.netAan = false; push.uitslag = "Meldingen staan uit op dit toestel."; tekenPush();
+}
+async function pushTest() {
+  push.uitslag = "Bezig…"; tekenPush();
+  try { push.uitslag = (await api("/api/push/test", { endpoint: push.sub.endpoint })).tekst || "Verstuurd."; }
+  catch (e) { push.uitslag = "Mislukt: " + (e.message || e); }
+  tekenPush();
+}
+function tekenPush() {
+  const balk = $("pushBalk"), voet = $("pushVoet");
+  if (!push.kan || !push.stand || !push.stand.beschikbaar) { balk.hidden = voet.hidden = true; return; }
+  const toestemming = Notification.permission;
+  const uitslag = push.uitslag ? `<span class="uitslag">${esc(push.uitslag)}</span>` : "";
+  voet.innerHTML = push.sub
+    ? `Meldingen staan aan op dit toestel (stil van ${esc(push.stand.stil)}) · <button data-push="test">Stuur een testmelding</button> · <button data-push="uit">Zet uit</button>${push.netAan ? "" : uitslag}`
+    : toestemming === "denied" ? "Meldingen zijn voor deze app geblokkeerd in je browser."
+    : `<button data-push="aan">Meldingen aanzetten op dit toestel</button>${uitslag}`;
+  voet.hidden = false;
+  balk.innerHTML = push.netAan
+    ? `<span>Meldingen staan aan op dit toestel. Stil van ${esc(push.stand.stil)}.</span><span class="sp"></span><button class="hoofd" data-push="test">Stuur een testmelding</button><button data-push="klaar">Sluit</button>${uitslag}`
+    : !push.sub && toestemming === "default" && !localStorage.getItem("gc-push-later")
+      ? `<span>Een melding op dit toestel als er een vraag op je wacht?</span><span class="sp"></span><button class="hoofd" data-push="aan">Zet aan</button><button data-push="later">Niet nu</button>${uitslag}`
+      : "";
+  balk.hidden = !balk.innerHTML;
+  const doe = { aan: pushAan, uit: pushUit, test: pushTest,
+    later: () => { localStorage.setItem("gc-push-later", "1"); tekenPush(); },
+    klaar: () => { push.netAan = false; push.uitslag = ""; tekenPush(); } };
+  document.querySelectorAll("[data-push]").forEach((b) => b.onclick = () => doe[b.dataset.push]());
+}
+pushBegin();
+// het slot (slot.py): op de Mac zelf een link naar /slot, van buiten "Log uit"
+fetch("/api/slot").then((r) => (r.ok ? r.json() : null)).then((s) => {
+  if (!s) return;
+  $("boomVoet").innerHTML = s.buiten
+    ? `<form method="post" action="/loguit"><button type="submit" title="Dit toestel uitloggen">Log uit</button></form>`
+    : `<a href="/slot" title="Het wachtwoord voor toegang van buiten, en welke toestellen ingelogd zijn">Slot</a>`;
+  $("boomVoet").hidden = false;
+}).catch(() => {});
+if (location.hash === "#verloop") toon("verloopTab");
+if (location.hash === "#boom" || location.hash === "#gesprek") toon(location.hash.slice(1));   // zo springt de WhatsApp-pagina (/wa) terug naar een chat
+// de ingang naar de WhatsApp-tab verschijnt alleen als die tab hier antwoordt (niet geladen, of van buiten dicht: geen dode link)
+// het getal erbij = gesprekken die op je antwoord wachten (wacht_n uit wa.py), elke minuut ververst
+function waIngang() {
+  fetch("/api/wa/pols?na=-1").then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (d) for (const id of ["tabWa", "knopWa"]) { $(id).hidden = false; $(id).textContent = "WhatsApp" + (d.wacht_n ? " · " + d.wacht_n : ""); }
+  }).catch(() => {});
+}
+waIngang(); setInterval(waIngang, 60000);
+</script>
+<script src="/klanten.js" defer></script>
+<script src="/klok.js" defer></script>
+</body>
+</html>

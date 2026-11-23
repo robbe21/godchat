@@ -1,0 +1,16 @@
+# eigen gegevens: elke gebruiker maakt ze uit de voorbeelden (*.voorbeeld.json)
+routing.json
+rooster.json
+rooster/
+app/config.json
+# het logboek dat de chats bijhouden (eigen gegevens)
+LOG.md
+# stand van de wachters en de app
+state/
+app/data/
+# Python en macOS
+__pycache__/
+*.pyc
+.DS_Store
+# werkkopieën van wie aan de app bouwt
+.voor-*

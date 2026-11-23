@@ -1,0 +1,65 @@
+{
+ "_": "Nepgegevens voor het scherm (server.py --nep). Alles verzonnen: de projecten, de mensen en de nummers (999…) bestaan niet.",
+ "chats": [
+  {"id": "god", "naam": "God-chat", "soort": "god", "toestand": "slaapt", "uur": "09:02", "model": "opus", "effort": "high",
+   "regel": "Notitie over de bestellijst doorgestuurd naar Bakkerij Korrel."},
+  {"id": "bakkerij", "naam": "Bakkerij Korrel", "soort": "klant", "toestand": "wacht", "uur": "09:14",
+   "regel": "Antwoord aan Tom over de workshop staat klaar."},
+  {"id": "bakkerij--webshop", "naam": "Webshop", "soort": "taak", "ouder": "bakkerij", "toestand": "wacht", "uur": "09:31",
+   "regel": "Bestelpagina staat op de preview; wacht op je ja om live te zetten."},
+  {"id": "studio", "naam": "Studio Noord", "soort": "klant", "toestand": "werkt", "uur": "09:21",
+   "regel": "Leest het bericht van Noor over de fotoshoot."},
+  {"id": "tuin", "naam": "Tuinatelier", "soort": "klant", "toestand": "desktop", "uur": "", "regel": ""}
+ ],
+ "vragen": [
+  {"nr": 1, "chat": "bakkerij", "uur": "09:14", "status": "open",
+   "vraag": "Tom dit antwoord over de workshop sturen?",
+   "context": "Ja = ik stuur het zo op WhatsApp. Tom vroeg of er zaterdag nog plaats is.",
+   "concept": "Hoi Tom, zaterdag zijn er nog drie plaatsen vrij voor de workshop broodbakken. Zal ik er één voor je vasthouden?",
+   "antwoorden": ["Ja, stuur het zo", "Stuur, zonder de vraag erbij", "Nee, wacht"],
+   "whatsapp": {"aan": "999000000002@s.whatsapp.net",
+                "bericht": "Hoi Tom, zaterdag zijn er nog drie plaatsen vrij voor de workshop broodbakken. Zal ik er één voor je vasthouden?"}},
+  {"nr": 2, "chat": "bakkerij--webshop", "uur": "09:31", "status": "open",
+   "vraag": "De nieuwe bestelpagina live zetten?",
+   "context": "Ja = ik merge de branch en zet de site live. De preview werkt op telefoon en laptop.",
+   "concept": "Wat er live gaat:\n- de bestelpagina met een afhaaldag\n- een bevestigingsmail aan de klant\n\nPreview: https://example.org/bakkerij-preview",
+   "antwoorden": ["Ja, zet live", "Eerst zelf bekijken", "Nee, nog niet"]}
+ ],
+ "verloop": [
+  {"id": "n9", "uur": "09:31", "soort": "vraag", "chat": "bakkerij--webshop", "route": "Bakkerij Korrel › Webshop → jou",
+   "kop": "De nieuwe bestelpagina live zetten?", "tekst": "De nieuwe bestelpagina live zetten?\n\nJa = ik merge de branch en zet de site live."},
+  {"id": "n8", "uur": "09:21", "soort": "binnen", "chat": "studio", "route": "WhatsApp → Studio Noord", "kop": "Noor: 1 om af te handelen",
+   "tekst": "NIEUW studio: 1 berichten (1 om af te handelen) in 1 chats, laatste ma 1 dec 09:20\n[Noor (fotografe)] ma 1 dec 09:20 Noor: Kunnen we de fotoshoot naar dinsdag verzetten?  (id N001)"},
+  {"id": "n7", "uur": "09:20", "soort": "actie", "chat": "bakkerij--webshop", "route": "Bakkerij Korrel › Webshop",
+   "kop": "bestelpagina staat op de preview", "tekst": "De bestelpagina staat op de preview, met een afhaaldag en een bevestigingsmail.\n\nTools: Bash, Edit, meld_stand"},
+  {"id": "n6", "uur": "09:14", "soort": "vraag", "chat": "bakkerij", "route": "Bakkerij Korrel → jou",
+   "kop": "Tom dit antwoord over de workshop sturen?", "tekst": "Tom dit antwoord over de workshop sturen?"},
+  {"id": "n5", "uur": "09:10", "soort": "binnen", "chat": "bakkerij", "route": "WhatsApp → Bakkerij Korrel", "kop": "Tom: 1 om af te handelen",
+   "tekst": "NIEUW bakkerij: 1 berichten (1 om af te handelen) in 1 chats, laatste ma 1 dec 09:08\n[Tom (zaakvoerder)] ma 1 dec 09:08 Tom: Is er zaterdag nog plaats voor de workshop?  (id T001)"},
+  {"id": "n4", "uur": "09:02", "soort": "door", "chat": "god", "route": "God-chat → Bakkerij Korrel", "van": "god", "naar": "bakkerij",
+   "kop": "ZELF (zelfchat, ma 09:01): bestellijst voortaan per mail?", "tekst": "ZELF (zelfchat, ma 1 dec 09:01): bestellijst van de bakkerij voortaan per mail?"},
+  {"id": "n3", "uur": "09:01", "soort": "binnen", "chat": "god", "route": "Zelfchat → God-chat", "kop": "zelfchat: 1 om af te handelen",
+   "tekst": "NIEUW god: 1 berichten (1 om af te handelen) in 1 chats, laatste ma 1 dec 09:01\n[zelfchat] ma 1 dec 09:01 eigenaar: bestellijst van de bakkerij voortaan per mail?  (id S001)"},
+  {"id": "n2", "uur": "08:40", "soort": "fout", "chat": "studio", "route": "Studio Noord", "kop": "wachter stopte zonder levering (1e keer, code 1)",
+   "tekst": "FOUT studio: OperationalError: database is locked"},
+  {"id": "n1", "uur": "07:30", "soort": "binnen", "chat": "studio", "route": "Wachter → Studio Noord", "kop": "hartslag: drie uur niets, mail nakijken",
+   "tekst": "HARTSLAG studio: niets nieuws op WhatsApp sinds 04:30."}
+ ],
+ "gesprekken": {
+  "god": [
+   {"rol": "user", "bron": "wachter", "uur": "09:01",
+    "tekst": "NIEUW god: 1 berichten (1 om af te handelen) in 1 chats, laatste ma 1 dec 09:01\n[zelfchat] ma 1 dec 09:01 eigenaar: bestellijst van de bakkerij voortaan per mail?  (id S001)\nchat_jid: zelfchat = 999000000001@s.whatsapp.net"},
+   {"rol": "assistant", "uur": "09:02", "einde": "beurt klaar · 14 s", "delen": [
+    {"soort": "tools", "tools": [{"naam": "stuur_door", "invoer": "{\n \"naar\": \"bakkerij\",\n \"tekst\": \"ZELF (zelfchat, ma 1 dec 09:01): bestellijst van de bakkerij voortaan per mail?\"\n}", "uitvoer": "Doorgestuurd naar Bakkerij Korrel."}]},
+    {"soort": "tekst", "tekst": "De notitie over de bestellijst staat bij **Bakkerij Korrel**."}]}
+  ],
+  "bakkerij": [
+   {"rol": "user", "bron": "wachter", "uur": "09:10",
+    "tekst": "NIEUW bakkerij: 1 berichten (1 om af te handelen) in 1 chats, laatste ma 1 dec 09:08\n[Tom (zaakvoerder)] ma 1 dec 09:08 Tom: Is er zaterdag nog plaats voor de workshop?  (id T001)\nchat_jid: Tom (zaakvoerder) = 999000000002@s.whatsapp.net"},
+   {"rol": "assistant", "uur": "09:14", "einde": "beurt klaar · 1 min 12 s", "delen": [
+    {"soort": "tekst", "tekst": "Tom vraagt of er zaterdag nog plaats is. In het inschrijvingsformulier staan 9 van de 12 plaatsen bezet."},
+    {"soort": "tools", "tools": [{"naam": "vraag_eigenaar", "invoer": "{\n \"vraag\": \"Tom dit antwoord over de workshop sturen?\"\n}", "uitvoer": "Vraag 1 staat bij de eigenaar in 'Wacht op jou'."}]},
+    {"soort": "tekst", "tekst": "Het antwoord aan Tom staat klaar in Wacht op jou."}]}
+  ]
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "_": "GodChat-app. Zonder config.json gelden deze waarden; kopieer dit bestand naar config.json om iets te wijzigen. model per chat: een alias (opus, sonnet, haiku, fable) of null = wat `claude` zelf kiest. effort: low, medium, high, xhigh, max of null. Een taakchat erft model en effort van de chat erboven. Optioneel per chat: wacht_args (extra argumenten voor wacht.py, bv. [\"--max-wacht\", \"86400\"] voor een rustig project). Let op: een modelwissel op het scherm schrijft dit bestand opnieuw vanuit het geheugen van de app.",
+ "poort": 8742,
+ "chats": {
+  "god": {
+   "model": "opus",
+   "effort": "high"
+  },
+  "bakkerij": {
+   "model": null,
+   "effort": null
+  },
+  "studio": {
+   "model": null,
+   "effort": null
+  }
+ },
+ "compact": {
+  "_": "Zuinig met context: tussen twee beurten samenvatten zodra een chat boven min(pct van het venster, tokens) zit; 's ochtends (klok, actie ochtend) vanaf 60k. aan=false zet het uit.",
+  "aan": true,
+  "tokens": 200000
+ }
+}

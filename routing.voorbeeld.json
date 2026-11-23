@@ -1,0 +1,44 @@
+{
+ "_": {
+  "over": "Kopieer dit bestand naar routing.json en vul je eigen gegevens in. Alles onder _ is uitleg: de app leest het niet. Na een wijziging aan de projecten: de app herstarten (app/herstart.py); de wachters lezen whatsapp en zelf meteen.",
+  "eigenaar": "Je naam. Elke chat krijgt in zijn startbeurt de zin 'De eigenaar heet <naam>.'",
+  "zelf": "Je eigen WhatsApp-chat (de zelfchat): <jouw nummer>@s.whatsapp.net. Wat je daar schrijft, brengt de God-chat bij het juiste project. Ook de WhatsApp-tab gebruikt dit: hij verstuurt alleen als de store van dit nummer is.",
+  "store": "Optioneel, als sleutel naast zelf: de map store/ van je WhatsApp-bridge. Standaard ~/whatsapp-mcp/whatsapp-bridge/store; de omgeving GODCHAT_STORE gaat voor.",
+  "bridge": "Optioneel, als sleutel naast zelf: {\"api\": \"http://localhost:8080/api\", \"outbox\": \"~/.local/share/whatsapp-mcp/outbox\"} als je bridge op een ander adres luistert. Alleen een adres op deze computer werkt.",
+  "klanten": "Eén blok per project. De sleutel (bv. bakkerij) is de naam van de chat: kleine letters, cijfers en '-'. De volgorde hier is de volgorde op het scherm.",
+  "naam": "Zoals het project op het scherm heet.",
+  "map": "De projectmap, relatief aan je werkmap (de map boven tools/god-chat). Daar staan CLAUDE.md, LOG.md en CHAT.md van het project. Met 'ook' (een lijst) kunnen er meer mappen bij.",
+  "whatsapp": "De WhatsApp-chats van dit project: chat_jid -> naam. Eén-op-één eindigt op @s.whatsapp.net, een groep op @g.us. Alleen deze chats wekken de projectchat.",
+  "bijzonderheden": "Optioneel: wat de chat van dit project altijd moet weten (een tekst of een lijst regels), bv. wie wie is of een kanaal dat hij niet volgt. Hij krijgt het in zijn startbeurt.",
+  "meter": "Optioneel: één getal per project op het dashboard, dat de projectchat zelf meldt (meld_stand -> cijfer). label = wat het telt, eenheid = bv. '€' of leeg, van = het geheel (null als er geen is), ook_label = de naam van een tweede getal (of null), bron = waar de chat het getal leest. Zonder meter weigert de app een cijfer.",
+  "bezet": "Chats met een eigen lus, bot of geplande taak: chat_jid -> omschrijving. Geen enkele chat volgt ze. Begint de omschrijving met '<naam> (<naam van een project>): ', dan staat het kanaal bij dat project op het dashboard."
+ },
+ "eigenaar": "Anna",
+ "zelf": "999000000001@s.whatsapp.net",
+ "klanten": {
+  "bakkerij": {
+   "naam": "Bakkerij Korrel",
+   "map": "projecten/bakkerij",
+   "whatsapp": {
+    "999000000002@s.whatsapp.net": "Tom (zaakvoerder)",
+    "120999000000000001@g.us": "groep Bakkerij team"
+   },
+   "bijzonderheden": "Tom is de zaakvoerder en beslist over prijzen. In de teamgroep schrijf je nooit zelf.",
+   "meter": {
+    "label": "plaatsen workshop",
+    "eenheid": "",
+    "van": 12,
+    "ook_label": "op de wachtlijst",
+    "bron": "inschrijvingen voor de eerstvolgende workshop broodbakken, uit het inschrijvingsformulier van de site"
+   }
+  },
+  "studio": {
+   "naam": "Studio Noord",
+   "map": "projecten/studio",
+   "whatsapp": {
+    "999000000003@s.whatsapp.net": "Noor (fotografe)"
+   }
+  }
+ },
+ "bezet": {}
+}

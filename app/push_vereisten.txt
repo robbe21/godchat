@@ -1,0 +1,23 @@
+# De eigen omgeving van de meldingen (push_stuur.py). De app zelf gebruikt geen pakketten.
+#   python3 -m venv ~/.venvs/godchat-push && ~/.venvs/godchat-push/bin/pip install -r push_vereisten.txt
+# Alleen pywebpush is gekozen; de rest zijn de afhankelijkheden ervan (vastgepinde versies).
+# Een andere plek voor die omgeving: zet GODCHAT_PUSH_PY op haar Python.
+aiohappyeyeballs==2.7.1
+aiohttp==3.14.5
+aiosignal==1.4.0
+attrs==26.1.0
+certifi==2026.11.20
+cffi==2.1.1
+charset-normalizer==3.5.2
+cryptography==50.0.2
+frozenlist==1.8.0
+http_ece==1.2.1
+idna==3.20
+multidict==7.2.1
+propcache==0.5.4
+py-vapid==1.9.6
+pycparser==3.12
+pywebpush==2.5.0
+requests==2.34.2
+urllib3==2.8.0
+yarl==1.25.1
